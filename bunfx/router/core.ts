@@ -1,6 +1,7 @@
 export type RouteDefinitions<T> = Record<string, T>;
 export type RouteMatch<T> = { pattern: string; value: T };
-export type Router<T> = (pathname: string) => RouteMatch<T> | undefined;
+export type RouteResult<T> = RouteMatch<T> & { params: Record<string, string> };
+export type Router<T> = (pathname: string) => RouteResult<T> | undefined;
 
 type RouteChildren<T> = Record<string, RouteNode<T>>;
 type RouteNode<T> = {
@@ -38,6 +39,32 @@ function findMatch<T>(tree: undefined | RouteNode<T>, pieces: string[], index: n
 }
 
 /**
+ * Given a route pattern and a URL pathname, return the route params.
+ *
+ * Example:
+ *
+ *   // Returns { name: 'bob mortimer' }
+ *   makeRouteParams({ pattern: 'hi/:name', pathname: 'hi/bob%20mortimer' });
+ */
+function makeRouteParams(opts: { pattern: string, pathname: string }) {
+  const patternPieces = routePieces(opts.pattern);
+  const components = routePieces(opts.pathname);
+  const result: Record<string, string> = {};
+  for (let i = 0; i < patternPieces.length; ++i) {
+    const piece = patternPieces[i]!;
+    if (piece[0] === ':') {
+      result[piece.slice(1)] = decodeURIComponent(components[i] || '');
+      continue;
+    }
+    if (piece[0] === '*') {
+      result[piece.slice(1)] = components.slice(i).join('/');
+      break;
+    }
+  }
+  return result;
+}
+
+/**
  * Build a function which maps URL pathnames to a matched route. The
  * routes are order-agnostic, so the most specific route wins when
  * matching a pathname.
@@ -57,31 +84,15 @@ export function makeRouter<T>(defs: RouteDefinitions<T>): Router<T> {
   for (const pattern in defs) {
     buildTree(tree, pattern, defs[pattern]);
   }
-  return (pattern: string) => findMatch(tree, routePieces(pattern), 0);
-}
-
-/**
- * Given a route pattern and a URL pathname, return the route params.
- *
- * Example:
- *
- *   // Returns { name: 'bob mortimer' }
- *   makeRouteParams({ pattern: 'hi/:name', pathname: 'hi/bob%20mortimer' });
- */
-export function makeRouteParams(opts: { pattern: string, pathname: string }) {
-  const patternPieces = routePieces(opts.pattern);
-  const components = routePieces(opts.pathname);
-  const result: Record<string, string> = {};
-  for (let i = 0; i < patternPieces.length; ++i) {
-    const piece = patternPieces[i]!;
-    if (piece[0] === ':') {
-      result[piece.slice(1)] = decodeURIComponent(components[i] || '');
-      continue;
+  return (pathname: string) => {
+    const result = findMatch(tree, routePieces(pathname), 0);
+    if (result) {
+      return {
+        ...result, params: makeRouteParams({
+          pathname,
+          pattern: result.pattern,
+        })
+      }
     }
-    if (piece[0] === '*') {
-      result[piece.slice(1)] = components.slice(i).join('/');
-      break;
-    }
-  }
-  return result;
+  };
 }
