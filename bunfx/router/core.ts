@@ -37,6 +37,21 @@ function findMatch<T>(tree: undefined | RouteNode<T>, pieces: string[], index: n
     tree.children['*']?.match;
 }
 
+/**
+ * Build a function which maps URL pathnames to a matched route. The
+ * routes are order-agnostic, so the most specific route wins when
+ * matching a pathname.
+ *
+ * Example:
+ *
+ *   const route = makeRouter({
+ *     'hi/:name': handleHiName,
+ *     'hi': handleHiRoot,
+ *     '*slug': handleNotFound,
+ *   });
+ *   // Returns the 404 handler
+ *   const handler = route('/what/ever');
+ */
 export function makeRouter<T>(defs: RouteDefinitions<T>): Router<T> {
   const tree = makeNode<T>();
   for (const pattern in defs) {
@@ -45,6 +60,14 @@ export function makeRouter<T>(defs: RouteDefinitions<T>): Router<T> {
   return (pattern: string) => findMatch(tree, routePieces(pattern), 0);
 }
 
+/**
+ * Given a route pattern and a URL pathname, return the route params.
+ *
+ * Example:
+ *
+ *   // Returns { name: 'bob mortimer' }
+ *   makeRouteParams({ pattern: 'hi/:name', pathname: 'hi/bob%20mortimer' });
+ */
 export function makeRouteParams(opts: { pattern: string, pathname: string }) {
   const patternPieces = routePieces(opts.pattern);
   const components = routePieces(opts.pathname);
