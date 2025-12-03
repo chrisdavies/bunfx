@@ -1,10 +1,17 @@
 import { serve } from "bun";
+import { makeRPCHandler } from "bunfx";
 import index from "./index.html";
+import { endpoints } from "./server/rpc";
+
+const rpcHandler = makeRPCHandler(endpoints);
 
 const server = serve({
 	routes: {
 		// Serve index.html for all unmatched routes.
 		"/*": index,
+
+		// RPC endpoints
+		"/rpc/*": rpcHandler,
 
 		"/api/hello": {
 			async GET(_req) {

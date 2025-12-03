@@ -8,13 +8,17 @@
 	"peerDependencies": {
 		"typescript": "^5",
 		"preact": "^10.0.0",
-		"@preact/signals": "^2.5.0"
+		"@preact/signals": "^2.5.0",
+		"zod": "^4.0.0"
 	},
 	"peerDependenciesMeta": {
 		"preact": {
 			"optional": true
 		},
 		"@preact/signals": {
+			"optional": true
+		},
+		"zod": {
 			"optional": true
 		}
 	}
