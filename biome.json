@@ -15,7 +15,21 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"complexity": {
+				"noImportantStyles": "off"
+			}
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		},
+		"linter": {
+			"enabled": true
 		}
 	},
 	"javascript": {

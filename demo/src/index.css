@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@layer base {
+	:root {
+		@apply text-[rgba(255,255,255,0.87)] bg-[#242424] font-sans;
+	}
+
+	body {
+		@apply grid place-items-center min-w-[320px] min-h-screen relative m-0;
+	}
+}
+
+@media (prefers-reduced-motion) {
+	*,
+	::before,
+	::after {
+		animation: none !important;
+	}
+}
+
+@keyframes page-loading {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+.page-loading-indicator {
+	@apply fixed top-0 inset-x-0 h-1.5 bg-gradient-to-r to-teal-500 from-transparent via-sky-500;
+	animation: page-loading infinite 2s;
+}

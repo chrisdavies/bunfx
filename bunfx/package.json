@@ -1,11 +1,21 @@
 {
-  "name": "bunfx",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "bunfx",
+	"module": "index.ts",
+	"type": "module",
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5",
+		"preact": "^10.0.0",
+		"@preact/signals": "^2.5.0"
+	},
+	"peerDependenciesMeta": {
+		"preact": {
+			"optional": true
+		},
+		"@preact/signals": {
+			"optional": true
+		}
+	}
 }

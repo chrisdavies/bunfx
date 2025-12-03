@@ -1,0 +1,2 @@
+#!/bin/sh
+biome check --staged --error-on-warnings
