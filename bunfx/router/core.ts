@@ -5,47 +5,47 @@ export type Router<T> = (pathname: string) => RouteResult<T> | undefined;
 
 type RouteChildren<T> = Record<string, RouteNode<T>>;
 type RouteNode<T> = {
-	children: RouteChildren<T>;
-	match?: RouteMatch<T>;
+  children: RouteChildren<T>;
+  match?: RouteMatch<T>;
 };
 
 function makeNode<T>(): RouteNode<T> {
-	return { children: {} };
+  return { children: {} };
 }
 
 function routePieces(pattern: string) {
-	const pieces = pattern.match(/[^/]+/g);
-	return pieces?.length ? pieces : [""];
+  const pieces = pattern.match(/[^/]+/g);
+  return pieces?.length ? pieces : [""];
 }
 
 function buildTree<T>(tree: RouteNode<T>, pattern: string, value: T) {
-	let node = tree;
-	for (const piece of routePieces(pattern)) {
-		const name =
-			piece.startsWith("*") || piece.startsWith(":")
-				? piece.slice(0, 1)
-				: piece;
-		const child: RouteNode<T> = node.children[name] ?? makeNode<T>();
-		node.children[name] = child;
-		node = child;
-	}
-	node.match = { pattern, value };
+  let node = tree;
+  for (const piece of routePieces(pattern)) {
+    const name =
+      piece.startsWith("*") || piece.startsWith(":")
+        ? piece.slice(0, 1)
+        : piece;
+    const child: RouteNode<T> = node.children[name] ?? makeNode<T>();
+    node.children[name] = child;
+    node = child;
+  }
+  node.match = { pattern, value };
 }
 
 function findMatch<T>(
-	tree: undefined | RouteNode<T>,
-	pieces: string[],
-	index: number,
+  tree: undefined | RouteNode<T>,
+  pieces: string[],
+  index: number,
 ): RouteMatch<T> | undefined {
-	const piece = pieces[index];
-	if (piece == null || !tree || index > pieces.length) {
-		return tree?.match;
-	}
-	return (
-		findMatch(tree.children[piece], pieces, index + 1) ||
-		findMatch(tree.children[":"], pieces, index + 1) ||
-		tree.children["*"]?.match
-	);
+  const piece = pieces[index];
+  if (piece == null || !tree || index > pieces.length) {
+    return tree?.match;
+  }
+  return (
+    findMatch(tree.children[piece], pieces, index + 1) ||
+    findMatch(tree.children[":"], pieces, index + 1) ||
+    tree.children["*"]?.match
+  );
 }
 
 /**
@@ -57,21 +57,21 @@ function findMatch<T>(
  *   makeRouteParams({ pattern: 'hi/:name', pathname: 'hi/bob%20mortimer' });
  */
 function makeRouteParams(opts: { pattern: string; pathname: string }) {
-	const patternPieces = routePieces(opts.pattern);
-	const components = routePieces(opts.pathname);
-	const result: Record<string, string> = {};
-	for (let i = 0; i < patternPieces.length; ++i) {
-		const piece = patternPieces[i]!;
-		if (piece[0] === ":") {
-			result[piece.slice(1)] = decodeURIComponent(components[i] || "");
-			continue;
-		}
-		if (piece[0] === "*") {
-			result[piece.slice(1)] = components.slice(i).join("/");
-			break;
-		}
-	}
-	return result;
+  const patternPieces = routePieces(opts.pattern);
+  const components = routePieces(opts.pathname);
+  const result: Record<string, string> = {};
+  for (let i = 0; i < patternPieces.length; ++i) {
+    const piece = patternPieces[i]!;
+    if (piece[0] === ":") {
+      result[piece.slice(1)] = decodeURIComponent(components[i] || "");
+      continue;
+    }
+    if (piece[0] === "*") {
+      result[piece.slice(1)] = components.slice(i).join("/");
+      break;
+    }
+  }
+  return result;
 }
 
 /**
@@ -90,20 +90,20 @@ function makeRouteParams(opts: { pattern: string; pathname: string }) {
  *   const handler = route('/what/ever');
  */
 export function makeRouter<T>(defs: RouteDefinitions<T>): Router<T> {
-	const tree = makeNode<T>();
-	for (const pattern in defs) {
-		buildTree(tree, pattern, defs[pattern]);
-	}
-	return (pathname: string) => {
-		const result = findMatch(tree, routePieces(pathname), 0);
-		if (result) {
-			return {
-				...result,
-				params: makeRouteParams({
-					pathname,
-					pattern: result.pattern,
-				}),
-			};
-		}
-	};
+  const tree = makeNode<T>();
+  for (const pattern in defs) {
+    buildTree(tree, pattern, defs[pattern]);
+  }
+  return (pathname: string) => {
+    const result = findMatch(tree, routePieces(pathname), 0);
+    if (result) {
+      return {
+        ...result,
+        params: makeRouteParams({
+          pathname,
+          pattern: result.pattern,
+        }),
+      };
+    }
+  };
 }

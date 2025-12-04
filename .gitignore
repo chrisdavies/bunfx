@@ -1,5 +1,6 @@
 .podman/
 notes/
+data/
 
 # dependencies (bun install)
 node_modules

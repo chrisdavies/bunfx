@@ -2,5 +2,8 @@
 	"workspaces": [
 		"bunfx",
 		"demo"
-	]
+	],
+	"scripts": {
+		"check": "biome check bunfx/ demo/ && cd bunfx && bunx tsc --noEmit"
+	}
 }

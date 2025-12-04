@@ -1,21 +1,25 @@
 {
-	"name": "demo",
-	"version": "0.1.0",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"dev": "bun --hot src/index.ts",
-		"start": "NODE_ENV=production bun src/index.ts",
-		"build": "bun run build.ts"
-	},
-	"dependencies": {
-		"@preact/signals": "2.5.1",
-		"bun-plugin-tailwind": "0.1.2",
-		"preact": "10.28.0",
-		"tailwindcss": "4.1.11",
-		"zod": "4.1.13"
-	},
-	"devDependencies": {
-		"@types/bun": "latest"
-	}
+  "name": "demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "build": "bun run build.ts",
+    "migrate:new": "bun ../bunfx/migrations/cli.ts new",
+    "migrate:up": "bun ../bunfx/migrations/cli.ts up",
+    "migrate:down": "bun ../bunfx/migrations/cli.ts down",
+    "migrate:sync": "bun ../bunfx/migrations/cli.ts sync"
+  },
+  "dependencies": {
+    "@preact/signals": "2.5.1",
+    "bun-plugin-tailwind": "0.1.2",
+    "preact": "10.28.0",
+    "tailwindcss": "4.1.11",
+    "zod": "4.1.13"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
 }
