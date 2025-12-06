@@ -141,7 +141,8 @@ async function sync(opts: RunnerOptions) {
 }
 
 async function loadMigration(filename: string) {
-  const migration: Migration = (await import(filename)).default;
+  const absolutePath = path.resolve(filename);
+  const migration: Migration = (await import(absolutePath)).default;
   return migration;
 }
 
@@ -181,11 +182,11 @@ async function up(opts: RunnerOptions) {
     await migration.up(opts.tx);
     await opts.tx`
       INSERT INTO ${opts.tableName} ${opts.tx({
-      id: file,
-      migrated_on: new Date().toISOString(),
-      source_hash: Bun.hash(sourceCode).toString(),
-      source_code: sourceCode,
-    })}
+        id: file,
+        migrated_on: new Date().toISOString(),
+        source_hash: Bun.hash(sourceCode).toString(),
+        source_code: sourceCode,
+      })}
     `;
   }
   console.log("Applied", pending.length, "migrations");

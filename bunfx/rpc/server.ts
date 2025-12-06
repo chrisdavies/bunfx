@@ -1,4 +1,5 @@
 import type { EndpointFn } from "./endpoint";
+import { ClientError } from "./error";
 
 type EndpointModule = Record<string, EndpointFn>;
 type EndpointNamespace = Record<string, EndpointModule>;
@@ -53,16 +54,27 @@ export function makeRPCHandler(
       const opts = def.schema.parse(body);
       const result = await def.fn({ opts });
 
-      return Response.json(result);
+      return Response.json({ result });
     } catch (err) {
+      if (err instanceof ClientError) {
+        return Response.json(err.toJSON(), { status: err.status });
+      }
       if (err instanceof Error && err.name === "ZodError") {
         return Response.json(
-          { error: "Validation error", details: err },
+          {
+            error: true,
+            message: "Validation error",
+            code: "validation",
+            data: err,
+          },
           { status: 400 },
         );
       }
       console.error("RPC error:", err);
-      return Response.json({ error: "Internal server error" }, { status: 500 });
+      return Response.json(
+        { error: true, message: "Internal server error", code: "internal" },
+        { status: 500 },
+      );
     }
   };
 }

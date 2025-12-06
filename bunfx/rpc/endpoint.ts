@@ -24,11 +24,13 @@ export function endpoint<
   TFn extends (ctx: EndpointContext<TSchema>) => Promise<unknown>,
 >(
   def: EndpointDef<TSchema, TFn>,
-): (opts: z.infer<TSchema>) => Promise<Awaited<ReturnType<TFn>>> {
+): ((opts: z.infer<TSchema>) => Promise<Awaited<ReturnType<TFn>>>) &
+  EndpointFn {
   const fn = (opts: z.infer<TSchema>) => def.fn({ opts });
-  (fn as unknown as EndpointFn).rpcDefinition = def as EndpointDef<
+  (fn as EndpointFn).rpcDefinition = def as EndpointDef<
     z.ZodType,
     (ctx: { opts: unknown }) => Promise<unknown>
   >;
-  return fn as (opts: z.infer<TSchema>) => Promise<Awaited<ReturnType<TFn>>>;
+  return fn as ((opts: z.infer<TSchema>) => Promise<Awaited<ReturnType<TFn>>>) &
+    EndpointFn;
 }

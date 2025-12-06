@@ -5,6 +5,8 @@ import { makeRouter, type Router } from "./core";
 
 export type LoaderArgs = {
   params: Record<string, string>;
+  searchParams: Record<string, string>;
+  url: URL;
 };
 
 export type PageArgs<T extends (args: LoaderArgs) => Promise<unknown> = never> =
@@ -27,6 +29,8 @@ type Props = {
 type LoadedPage = {
   type: "page";
   params: Record<string, string>;
+  searchParams: Record<string, string>;
+  url: URL;
   state: Signal<unknown>;
   Page: RouteModule["Page"];
 };
@@ -37,7 +41,7 @@ type ErrorPage = {
 };
 
 type LoadingRoute = {
-  href: string;
+  url: URL;
   pathname: string;
   search: string;
 };
@@ -64,7 +68,18 @@ async function loadRoute(routeState: Signal<RouteState>) {
       return;
     }
     const mod = await route.value();
-    const data = await mod.load?.(route);
+    const searchParams: Record<string, string> = {};
+    for (const [key, value] of loading.url.searchParams) {
+      if (!(key in searchParams)) {
+        searchParams[key] = value;
+      }
+    }
+    const loaderArgs: LoaderArgs = {
+      params: route.params,
+      searchParams,
+      url: loading.url,
+    };
+    const data = await mod.load?.(loaderArgs);
     if (loading !== routeState.value.loading) {
       return;
     }
@@ -74,6 +89,8 @@ async function loadRoute(routeState: Signal<RouteState>) {
       current: {
         type: "page",
         params: route.params,
+        searchParams,
+        url: loading.url,
         Page: mod.Page,
         state: signal(data),
       },
@@ -105,7 +122,7 @@ function useRouteStateProvider(props: Props) {
       routeState.value = {
         ...routeState.value,
         loading: {
-          href: url.href,
+          url,
           pathname: url.pathname,
           search: url.search,
         },

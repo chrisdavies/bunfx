@@ -3,6 +3,8 @@
  * This file is safe to import on the client - it has no server dependencies.
  */
 
+import { ClientError } from "./error";
+
 export type RPCClientOptions = {
   prefix?: string;
   baseUrl?: string;
@@ -23,12 +25,16 @@ function makeProxy(path: string, options: RPCClientOptions): any {
       body: JSON.stringify(opts),
     });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error ?? `RPC call failed: ${response.status}`);
+    const body = await response.json();
+
+    if ("error" in body) {
+      if (ClientError.isClientErrorResponse(body)) {
+        throw ClientError.fromJSON(body);
+      }
+      throw new Error(body.message ?? `RPC call failed: ${response.status}`);
     }
 
-    return response.json();
+    return body.result;
   };
 
   return new Proxy(fn, {

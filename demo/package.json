@@ -8,9 +8,9 @@
     "start": "NODE_ENV=production bun src/index.ts",
     "build": "bun run build.ts",
     "migrate:new": "bun ../bunfx/migrations/cli.ts new",
-    "migrate:up": "bun ../bunfx/migrations/cli.ts up",
-    "migrate:down": "bun ../bunfx/migrations/cli.ts down",
-    "migrate:sync": "bun ../bunfx/migrations/cli.ts sync"
+    "migrate:up": "bun ../bunfx/migrations/cli.ts up && bun ../bunfx/gentypes/cli.ts",
+    "migrate:down": "bun ../bunfx/migrations/cli.ts down && bun ../bunfx/gentypes/cli.ts",
+    "migrate:sync": "bun ../bunfx/migrations/cli.ts sync && bun ../bunfx/gentypes/cli.ts"
   },
   "dependencies": {
     "@preact/signals": "2.5.1",

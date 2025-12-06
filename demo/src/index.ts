@@ -1,17 +1,30 @@
 import { serve } from "bun";
-import { makeRPCHandler } from "bunfx";
+import { makeDevmailHandler } from "bunfx/mailer";
+import { makeRPCHandler } from "bunfx/server";
+import { config } from "./config";
 import index from "./index.html";
 import { endpoints } from "./server/rpc";
 
 const rpcHandler = makeRPCHandler(endpoints);
 
+const devmailRoutes =
+  config.MAILER_PROVIDER === "local"
+    ? makeDevmailHandler({
+        prefix: "/devmail",
+        storagePath: config.MAILER_LOCAL_STORAGE_PATH,
+      })
+    : {};
+
 const server = serve({
   routes: {
-    // Serve index.html for all unmatched routes.
-    "/*": index,
+    // Dev mail UI (local provider only)
+    ...devmailRoutes,
 
     // RPC endpoints
     "/rpc/*": rpcHandler,
+
+    // Serve index.html for all unmatched routes.
+    "/*": index,
 
     "/api/hello": {
       async GET(_req) {
@@ -36,7 +49,7 @@ const server = serve({
     },
   },
 
-  development: process.env.NODE_ENV !== "production" && {
+  development: config.NODE_ENV !== "production" && {
     // Enable browser hot reloading in development
     hmr: true,
 
