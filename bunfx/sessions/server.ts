@@ -1,3 +1,5 @@
+import { makeLRUCache } from "../cache/lru";
+
 /** Session returned by get() */
 export type Session<T> = {
   id: string;
@@ -20,6 +22,8 @@ export type SessionStoreOptions = {
   sameSite?: "strict" | "lax" | "none";
   /** Cookie path (default: "/") */
   path?: string;
+  /** LRU cache size for decrypted sessions (default: 1000, 0 to disable) */
+  lruCacheSize?: number;
 };
 
 export type SessionStore<T> = {
@@ -35,6 +39,7 @@ const defaultConfig = {
   path: "/",
   sameSite: "lax" as const,
   secure: true,
+  lruCacheSize: 1000,
 };
 
 function makeClearCookie(opts: {
@@ -161,34 +166,30 @@ async function encryptPayload<T>(
 async function decryptPayload<T>(
   token: string,
   secret: string,
-): Promise<SessionPayload<T> | null> {
-  try {
-    const key = await deriveKey(secret);
-    const combined = base64UrlDecode(token);
+): Promise<SessionPayload<T>> {
+  const key = await deriveKey(secret);
+  const combined = base64UrlDecode(token);
 
-    if (combined.length < 13) {
-      return null;
-    }
-
-    const iv = combined.slice(0, 12);
-    const ciphertext = combined.slice(12);
-
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext,
-    );
-
-    return JSON.parse(new TextDecoder().decode(decrypted)) as SessionPayload<T>;
-  } catch {
-    return null;
+  if (combined.length < 13) {
+    throw new Error("Invalid session token");
   }
+
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext,
+  );
+
+  return JSON.parse(new TextDecoder().decode(decrypted)) as SessionPayload<T>;
 }
 
 export function makeSessionStore<T>(
   opts: SessionStoreOptions,
 ): SessionStore<T> {
-  const { secret, ttlSeconds, name, path, sameSite, secure } = {
+  const { secret, ttlSeconds, name, path, sameSite, secure, lruCacheSize } = {
     ...defaultConfig,
     ...opts,
   };
@@ -196,6 +197,18 @@ export function makeSessionStore<T>(
   if (secret.length < 32) {
     throw new Error("Session secret must be at least 32 characters");
   }
+
+  const cache = makeLRUCache<Session<T>>({
+    maxSize: lruCacheSize,
+    async fetch(encrypted: string) {
+      const payload = await decryptPayload<T>(encrypted, secret);
+      return {
+        id: payload.id,
+        data: payload.data,
+        createdAt: new Date(payload.createdAt),
+      };
+    },
+  });
 
   return {
     async get(req: Request): Promise<Session<T> | undefined> {
@@ -208,14 +221,7 @@ export function makeSessionStore<T>(
         return;
       }
 
-      const payload = await decryptPayload<T>(encrypted, secret);
-      if (!payload) return;
-
-      return {
-        id: payload.id,
-        data: payload.data,
-        createdAt: new Date(payload.createdAt),
-      };
+      return cache.get(encrypted);
     },
 
     async create(data: T): Promise<SessionHeaders> {

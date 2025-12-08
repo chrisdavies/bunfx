@@ -157,6 +157,27 @@ test("fetch errors are not cached", async () => {
   expect(fetchFn).toHaveBeenCalledTimes(2);
 });
 
+test("maxSize=0 calls fetch but does not cache", async () => {
+  const fetchFn = mock((key: string) => Promise.resolve(`fetched-${key}`));
+
+  const cache = makeLRUCache<string>({
+    maxSize: 0,
+    fetch: fetchFn,
+  });
+
+  const value1 = await cache.get("x");
+  expect(value1).toBe("fetched-x");
+  expect(fetchFn).toHaveBeenCalledTimes(1);
+
+  // Second get should call fetch again (no caching)
+  const value2 = await cache.get("x");
+  expect(value2).toBe("fetched-x");
+  expect(fetchFn).toHaveBeenCalledTimes(2);
+
+  // Size should remain 0
+  expect(cache.size).toBe(0);
+});
+
 test("manual set overrides pending fetch", async () => {
   let resolvePromise: (value: string) => void;
   const fetchFn = mock(

@@ -71,12 +71,23 @@ describe("makeSessionStore", () => {
     expect(session).toBeUndefined();
   });
 
-  test("get() returns undefined for invalid cookie", async () => {
+  test("get() throws for invalid cookie", async () => {
     const sessions = makeSessionStore<{ userId: string }>({
       secret: TEST_SECRET,
     });
     const req = new Request("http://localhost/", {
-      headers: { cookie: "bunfxsession=invalid-token" },
+      headers: { cookie: "bunfxsession=v1:invalid-token" },
+    });
+
+    await expect(sessions.get(req)).rejects.toThrow();
+  });
+
+  test("get() returns undefined for cookie with wrong version", async () => {
+    const sessions = makeSessionStore<{ userId: string }>({
+      secret: TEST_SECRET,
+    });
+    const req = new Request("http://localhost/", {
+      headers: { cookie: "bunfxsession=v2:some-token" },
     });
 
     const session = await sessions.get(req);
@@ -135,13 +146,12 @@ describe("makeSessionStore", () => {
     const headers = await sessions1.create({ userId: "user-123" });
     const cookieValue = extractCookieValue(headers["Set-Cookie"]);
 
-    // Try to read with second store
+    // Try to read with second store - should throw
     const req = new Request("http://localhost/", {
       headers: { cookie: `bunfxsession=${cookieValue}` },
     });
 
-    const session = await sessions2.get(req);
-    expect(session).toBeUndefined();
+    await expect(sessions2.get(req)).rejects.toThrow();
   });
 
   test("custom cookie name is used", async () => {
@@ -251,5 +261,42 @@ describe("makeSessionStore", () => {
     // Simulate a revocation timestamp set before session creation
     const notRevokedAt = new Date(session!.createdAt.getTime() - 1000);
     expect(session!.createdAt < notRevokedAt).toBe(false);
+  });
+
+  test("lruCacheSize=0 disables caching", async () => {
+    const sessions = makeSessionStore<{ userId: string }>({
+      secret: TEST_SECRET,
+      lruCacheSize: 0,
+    });
+
+    const headers = await sessions.create({ userId: "user-123" });
+    const cookieValue = extractCookieValue(headers["Set-Cookie"]);
+
+    const req = new Request("http://localhost/", {
+      headers: { cookie: `bunfxsession=${cookieValue}` },
+    });
+
+    // Should still work without cache
+    const session = await sessions.get(req);
+    expect(session?.data.userId).toBe("user-123");
+  });
+
+  test("cached sessions return same data on repeated gets", async () => {
+    const sessions = makeSessionStore<{ userId: string }>({
+      secret: TEST_SECRET,
+      lruCacheSize: 10,
+    });
+
+    const headers = await sessions.create({ userId: "user-123" });
+    const cookieValue = extractCookieValue(headers["Set-Cookie"]);
+
+    const req = new Request("http://localhost/", {
+      headers: { cookie: `bunfxsession=${cookieValue}` },
+    });
+
+    const session1 = await sessions.get(req);
+    const session2 = await sessions.get(req);
+
+    expect(session1).toEqual(session2);
   });
 });

@@ -51,6 +51,11 @@ export function makeLRUCache<T>(options: LRUCacheOptions<T>): LRUCache<T> {
 
       if (!fetch) return;
 
+      // maxSize=0 means no caching, just fetch
+      if (maxSize === 0) {
+        return fetch(key);
+      }
+
       const promise = fetch(key)
         .then((value) => {
           // Replace pending promise with resolved value
