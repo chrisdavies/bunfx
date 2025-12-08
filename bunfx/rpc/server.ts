@@ -52,9 +52,14 @@ export function makeRPCHandler(
       // Parse the request body as JSON
       const body = await req.json();
       const opts = def.schema.parse(body);
-      const result = await def.fn({ opts });
+      const fnResult = await def.fn({ opts, req });
 
-      return Response.json({ result });
+      // If endpoint returns a Response directly, use it
+      if (fnResult instanceof Response) {
+        return fnResult;
+      }
+
+      return Response.json({ result: fnResult });
     } catch (err) {
       if (err instanceof ClientError) {
         return Response.json(err.toJSON(), { status: err.status });

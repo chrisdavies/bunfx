@@ -1,9 +1,10 @@
-import { ClientError, endpoint } from "bunfx";
+import { ClientError, endpoint, JSONResponse } from "bunfx";
 import { makeSQL } from "bunfx/db";
 import { type MailerOpts, makeMailer } from "bunfx/mailer";
 import { z } from "zod";
-import { config } from "../../config";
-import type { LoginCodeRow, UserRow } from "../../db-schema/public";
+import { config } from "@/config";
+import type { LoginCodeRow, UserRow } from "@/db-schema/public";
+import { getSessionUser, sessions } from "@/server/sessions";
 
 const sql = makeSQL(config.DATABASE_URL);
 
@@ -99,10 +100,34 @@ export const verifyLoginCode = endpoint({
     if (!user) {
       throw ClientError.notFound("User not found", "user_not_found");
     }
-    // TODO: create session
-    return {
-      userId: user.id,
-      email: user.email,
-    };
+
+    return new JSONResponse({
+      result: { userId: user.id, email: user.email },
+      headers: await sessions.create({ userId: user.id }),
+    });
+  },
+});
+
+export const logout = endpoint({
+  schema: z.strictObject({}),
+  async fn({ req }) {
+    // Verify user is logged in before logging out
+    const user = await getSessionUser(req);
+    if (!user) {
+      throw ClientError.unauthorized("Not authenticated", "not_authenticated");
+    }
+
+    return new JSONResponse({
+      result: { success: true },
+      headers: sessions.destroy(),
+    });
+  },
+});
+
+export const me = endpoint({
+  schema: z.strictObject({}),
+  async fn({ req }) {
+    const user = await getSessionUser(req);
+    return user;
   },
 });

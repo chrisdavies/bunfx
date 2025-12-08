@@ -19,6 +19,7 @@ const envSchema = z
     APP_SECRET: z.string(),
     APP_URL: z.string().default("http://localhost:3000"),
     LOGIN_CODE_TTL_MINUTES: z.coerce.number().default(15),
+    SESSION_TTL_SECONDS: z.coerce.number().optional(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
   })
   .and(mailerSchema);
