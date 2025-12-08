@@ -1,3 +1,4 @@
+import type { ZodError } from "zod";
 import type { EndpointFn } from "./endpoint";
 import { ClientError } from "./error";
 
@@ -65,15 +66,13 @@ export function makeRPCHandler(
         return Response.json(err.toJSON(), { status: err.status });
       }
       if (err instanceof Error && err.name === "ZodError") {
-        return Response.json(
-          {
-            error: true,
-            message: "Validation error",
-            code: "validation",
-            data: err,
-          },
-          { status: 400 },
-        );
+        const zodError = err as ZodError;
+        const fieldErrors = zodError.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        }));
+        const validationError = ClientError.validation(fieldErrors);
+        return Response.json(validationError.toJSON(), { status: 400 });
       }
       console.error("RPC error:", err);
       return Response.json(

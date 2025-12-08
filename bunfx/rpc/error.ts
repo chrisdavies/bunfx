@@ -1,3 +1,12 @@
+export type ValidationFieldError = {
+  field: string;
+  message: string;
+};
+
+export type ValidationErrorData = {
+  errors: ValidationFieldError[];
+};
+
 export type ClientErrorResponse = {
   error: true;
   message: string;
@@ -40,6 +49,27 @@ export class ClientError extends Error {
 
   static notFound(message: string, code?: string, data?: unknown) {
     return new ClientError({ message, status: 404, code, data });
+  }
+
+  static validation(
+    errors: ValidationFieldError[],
+    message = "Validation failed",
+  ) {
+    return new ClientError({
+      message,
+      status: 400,
+      code: "validation",
+      data: { errors } satisfies ValidationErrorData,
+    });
+  }
+
+  isValidationError(): this is ClientError & { data: ValidationErrorData } {
+    return (
+      this.code === "validation" &&
+      this.data != null &&
+      typeof this.data === "object" &&
+      "errors" in this.data
+    );
   }
 
   toJSON(): ClientErrorResponse {
