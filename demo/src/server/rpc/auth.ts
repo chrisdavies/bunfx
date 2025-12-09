@@ -49,7 +49,7 @@ export const sendLoginCode = endpoint({
     const hashedCode = hmacHash(code);
 
     await sql`
-      INSERT INTO login_codes ${sql({ user_id: user.id, code: hashedCode, created_at: new Date() })}
+      INSERT INTO login_codes ${sql({ user_id: user.id, code: hashedCode, created_at: new Date().toISOString() })}
       ON CONFLICT (user_id) DO UPDATE
         SET code = excluded.code, created_at = excluded.created_at
     `;

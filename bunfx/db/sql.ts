@@ -77,9 +77,14 @@ export function makeSQL(connectionString: string): WrappedSQL {
  * - Foreign keys enabled
  * - 5s busy timeout
  * - 20MB cache
+ *
+ * @param url - A sqlite:// connection URL (e.g., sqlite://./data.db)
  */
-export async function makeSQLite(filepath: string): Promise<WrappedSQL> {
-  const sql = wrapSQL(new SQL(`sqlite://${filepath}`)) as unknown as WrappedSQL;
+export async function makeSQLite(url: string): Promise<WrappedSQL> {
+  if (!url.startsWith("sqlite://")) {
+    throw new Error("makeSQLite requires a sqlite:// URL");
+  }
+  const sql = wrapSQL(new SQL(url)) as unknown as WrappedSQL;
 
   await sql`PRAGMA journal_mode = WAL`;
   await sql`PRAGMA synchronous = NORMAL`;
