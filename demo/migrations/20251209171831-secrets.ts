@@ -1,4 +1,4 @@
-import type { Migration } from "bunfx";
+import type { Migration } from "bunfx/server";
 
 export default {
   async up(sql) {

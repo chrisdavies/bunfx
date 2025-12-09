@@ -6,6 +6,6 @@ export const routes: RouteDefinitions = {
   "": () => import("./home"),
   login: () => import("./login"),
   verify: () => import("./verify"),
-  "hi/:name": () => import("./hello"),
+  "s/:id": () => import("./secret"),
   "*slug": () => import("./not-found"),
 };

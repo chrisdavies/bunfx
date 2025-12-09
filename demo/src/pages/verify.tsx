@@ -1,14 +1,21 @@
 import type { LoaderArgs, PageArgs } from "bunfx";
-import { ClientError, makeRPCClient } from "bunfx";
-import type { RPC } from "../server/rpc";
-
-const rpc = makeRPCClient<RPC>();
+import { ClientError } from "bunfx";
+import { Button } from "../components";
+import { IcoCheck } from "../components/icons";
+import { rpc } from "../rpc";
 
 type LoaderData =
   | { status: "success"; email: string }
   | { status: "error"; error: string; code?: string };
 
 export async function load({ searchParams }: LoaderArgs): Promise<LoaderData> {
+  // If already authenticated, redirect to home
+  const existingUser = await rpc.auth.me({});
+  if (existingUser) {
+    window.location.href = "/";
+    return { status: "success", email: existingUser.email };
+  }
+
   const userId = searchParams.user;
   const code = searchParams.code;
 
@@ -33,31 +40,40 @@ export function Page({ state }: PageArgs<typeof load>) {
   if (data.status === "error") {
     const isExpired = data.code === "expired";
     return (
-      <div class="p-8 max-w-md mx-auto">
-        <h1 class="text-2xl font-bold mb-4 text-red-600">
-          {isExpired ? "Link expired" : "Login failed"}
-        </h1>
-        <p class="text-gray-600 mb-4">
-          {isExpired
-            ? "Your login link has expired. Please request a new one."
-            : data.error}
-        </p>
-        <a href="/login" class="text-blue-600 hover:underline">
-          {isExpired ? "Request new link" : "Try again"}
-        </a>
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="card max-w-md w-full text-center">
+          <div class="text-4xl mb-4">❌</div>
+          <h1 class="text-xl font-semibold mb-2 text-danger">
+            {isExpired ? "Link expired" : "Login failed"}
+          </h1>
+          <p class="text-text-muted mb-6">
+            {isExpired
+              ? "Your login link has expired. Please request a new one."
+              : data.error}
+          </p>
+          <Button href="/login" variant="secondary" class="w-full">
+            {isExpired ? "Request new link" : "Try again"}
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div class="p-8 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-4 text-green-600">Welcome!</h1>
-      <p class="text-gray-600 mb-4">
-        You're now signed in as <strong>{data.email}</strong>
-      </p>
-      <a href="/" class="text-blue-600 hover:underline">
-        Go to home
-      </a>
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="card max-w-md w-full text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+          <IcoCheck class="w-8 h-8 text-success" stroke-width="2.5" />
+        </div>
+        <h1 class="text-xl font-semibold mb-2 text-success">Welcome!</h1>
+        <p class="text-text-muted mb-6">
+          You're now signed in as{" "}
+          <strong class="text-text">{data.email}</strong>
+        </p>
+        <Button href="/" class="w-full">
+          Continue
+        </Button>
+      </div>
     </div>
   );
 }

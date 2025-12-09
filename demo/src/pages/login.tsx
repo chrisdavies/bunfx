@@ -1,71 +1,77 @@
-import { signal } from "@preact/signals";
-import { makeRPCClient } from "bunfx/rpc/client";
-import type { RPC } from "../server/rpc";
+import { useSignal } from "@preact/signals";
+import { Button, Input } from "../components";
+import { rpc } from "../rpc";
 
-const rpc = makeRPCClient<RPC>();
-
-const email = signal("");
-const status = signal<"idle" | "sending" | "sent" | "error">("idle");
-const errorMessage = signal("");
-
-async function handleSubmit(e: Event) {
-  e.preventDefault();
-  if (!email.value) return;
-
-  status.value = "sending";
-  errorMessage.value = "";
-
-  try {
-    await rpc.auth.sendLoginCode({ email: email.value });
-    status.value = "sent";
-  } catch (err) {
-    status.value = "error";
-    errorMessage.value =
-      err instanceof Error ? err.message : "Something went wrong";
+export async function load() {
+  const user = await rpc.auth.me({});
+  if (user) {
+    window.location.href = "/";
   }
 }
 
 export function Page() {
+  const email = useSignal("");
+  const status = useSignal<"idle" | "sending" | "sent" | "error">("idle");
+  const errorMessage = useSignal("");
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    if (!email.value) return;
+
+    status.value = "sending";
+    errorMessage.value = "";
+
+    try {
+      await rpc.auth.sendLoginCode({ email: email.value });
+      status.value = "sent";
+    } catch (err) {
+      status.value = "error";
+      errorMessage.value =
+        err instanceof Error ? err.message : "Something went wrong";
+    }
+  }
+
   if (status.value === "sent") {
     return (
-      <div class="p-8 max-w-md mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Check your email</h1>
-        <p class="text-gray-600">
-          We sent a login link to <strong>{email.value}</strong>. Click the link
-          to sign in.
-        </p>
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="card max-w-md w-full text-center">
+          <div class="text-4xl mb-4">✉️</div>
+          <h1 class="text-xl font-semibold mb-2">Check your email</h1>
+          <p class="text-text-muted">
+            We sent a login link to{" "}
+            <strong class="text-text">{email.value}</strong>. Click the link to
+            sign in.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div class="p-8 max-w-md mx-auto">
-      <h1 class="text-2xl font-bold mb-4">Sign in</h1>
-      <form onSubmit={handleSubmit}>
-        <label class="block mb-4">
-          <span class="block text-sm font-medium mb-1">Email</span>
-          <input
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="card max-w-md w-full">
+        <h1 class="text-xl font-semibold mb-6">Sign in to Secrets</h1>
+        <form onSubmit={handleSubmit} class="flex flex-col gap-4">
+          <Input
             type="email"
+            label="Email"
             value={email.value}
             onInput={(e) => {
               email.value = (e.target as HTMLInputElement).value;
             }}
-            class="w-full px-3 py-2 border rounded-md"
             placeholder="you@example.com"
+            error={status.value === "error" ? errorMessage.value : undefined}
             required
           />
-        </label>
-        {status.value === "error" && (
-          <p class="text-red-600 text-sm mb-4">{errorMessage.value}</p>
-        )}
-        <button
-          type="submit"
-          disabled={status.value === "sending"}
-          class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {status.value === "sending" ? "Sending..." : "Send login link"}
-        </button>
-      </form>
+          <Button
+            type="submit"
+            class="w-full"
+            loading={status.value === "sending"}
+          >
+            Send login link
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
