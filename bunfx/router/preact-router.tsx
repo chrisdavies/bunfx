@@ -116,9 +116,12 @@ function useRouteStateProvider(props: Props) {
   }, [router]);
 
   useEffect(() => {
-    const goto = (href: string) => {
+    const navigate = ({ href, push }: { href: string; push: boolean }) => {
       const url = URL.parse(href, location.origin);
       if (!url) return;
+      if (push) {
+        history.pushState(null, "", href);
+      }
       routeState.value = {
         ...routeState.value,
         loading: {
@@ -129,7 +132,8 @@ function useRouteStateProvider(props: Props) {
       };
       loadRoute(routeState);
     };
-    const onpopstate = () => goto(location.href);
+    const goto = (href: string) => navigate({ href, push: true });
+    const onpopstate = () => navigate({ href: location.href, push: false });
     const onclick = (e: MouseEvent) => {
       const anchor = (e.target as HTMLElement).closest?.<HTMLAnchorElement>(
         "a[href]",
