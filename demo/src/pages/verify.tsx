@@ -1,5 +1,5 @@
 import type { LoaderArgs, PageArgs } from "bunfx";
-import { ClientError } from "bunfx";
+import { ClientError, RedirectError } from "bunfx";
 import { Button } from "../components";
 import { IcoCheck } from "../components/icons";
 import { rpc } from "../rpc";
@@ -12,8 +12,7 @@ export async function load({ searchParams }: LoaderArgs): Promise<LoaderData> {
   // If already authenticated, redirect to home
   const existingUser = await rpc.auth.me({});
   if (existingUser) {
-    window.location.href = "/";
-    return { status: "success", email: existingUser.email };
+    throw new RedirectError("/");
   }
 
   const userId = searchParams.user;

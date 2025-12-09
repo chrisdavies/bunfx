@@ -1,7 +1,9 @@
 import { type Signal, signal } from "@preact/signals";
 import { type ComponentChildren, createContext, type h } from "preact";
 import { useContext, useEffect, useMemo } from "preact/hooks";
+import { ClientError } from "../rpc/error";
 import { makeRouter, type Router } from "./core";
+import { RedirectError } from "./redirect";
 
 export type LoaderArgs = {
   params: Record<string, string>;
@@ -56,7 +58,19 @@ const RouteContext = createContext<Signal<RouteState>>(
   signal({ router: makeRouter({}) }),
 );
 
-async function loadRoute(routeState: Signal<RouteState>) {
+type NavigateFn = (opts: { href: string; push: boolean }) => void;
+
+function getRedirectUrl(err: unknown): string | undefined {
+  if (err instanceof RedirectError) {
+    return err.href;
+  }
+  if (err instanceof ClientError && err.code === "redirect") {
+    const data = err.data as { redirectUrl?: string } | undefined;
+    return data?.redirectUrl;
+  }
+}
+
+async function loadRoute(routeState: Signal<RouteState>, navigate: NavigateFn) {
   const state = routeState.peek();
   const loading = state.loading;
   if (!loading) {
@@ -96,10 +110,18 @@ async function loadRoute(routeState: Signal<RouteState>) {
       },
     };
   } catch (err) {
-    console.error(err);
     if (loading !== routeState.value.loading) {
       return;
     }
+
+    // Handle redirects
+    const redirectUrl = getRedirectUrl(err);
+    if (redirectUrl) {
+      navigate({ href: redirectUrl, push: true });
+      return;
+    }
+
+    console.error(err);
     const error = err instanceof Error ? err : new Error(err?.toString());
     routeState.value = {
       ...routeState.value,
@@ -130,7 +152,7 @@ function useRouteStateProvider(props: Props) {
           search: url.search,
         },
       };
-      loadRoute(routeState);
+      loadRoute(routeState, navigate);
     };
     const goto = (href: string) => navigate({ href, push: true });
     const onpopstate = () => navigate({ href: location.href, push: false });

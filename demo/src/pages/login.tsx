@@ -1,11 +1,12 @@
 import { useSignal } from "@preact/signals";
+import { RedirectError } from "bunfx";
 import { Button, Input } from "../components";
 import { rpc } from "../rpc";
 
 export async function load() {
   const user = await rpc.auth.me({});
   if (user) {
-    window.location.href = "/";
+    throw new RedirectError("/");
   }
 }
 
