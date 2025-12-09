@@ -1,5 +1,6 @@
 import { useSignal } from "@preact/signals";
 import type { PageArgs } from "bunfx";
+import { describeMinutes } from "@/lib/describe-minutes";
 import { Button, CopyButton, Input, Textarea, UserMenu } from "../components";
 import { encryptSecret } from "../crypto";
 import { rpc } from "../rpc";
@@ -74,7 +75,8 @@ function AuthenticatedHome({ user }: { user: User }) {
               <div class="text-4xl mb-4">🔐</div>
               <h2 class="text-xl font-semibold mb-2">Secret created!</h2>
               <p class="text-text-muted text-sm">
-                Share this link. It will expire after{" "}
+                Share this link. It will expire in{" "}
+                {describeMinutes(expiresIn.value)} or after{" "}
                 {maxDownloads.value === 1
                   ? "1 view"
                   : `${maxDownloads.value} views`}
