@@ -21,6 +21,8 @@ const envSchema = z
     LOGIN_CODE_TTL_MINUTES: z.coerce.number().default(15),
     SESSION_TTL_SECONDS: z.coerce.number().optional(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
+    MAX_SECRET_SIZE_KB: z.coerce.number().default(10),
+    MAX_SECRET_EXPIRATION_DAYS: z.coerce.number().default(30),
   })
   .and(mailerSchema);
 
