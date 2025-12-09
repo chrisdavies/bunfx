@@ -4,6 +4,7 @@ import { makeRPCHandler } from "bunfx/server";
 import { config } from "./config";
 import index from "./index.html";
 import { endpoints } from "./server/rpc";
+import { startBackgroundTasks } from "./tasks";
 
 const rpcHandler = makeRPCHandler(endpoints);
 
@@ -59,3 +60,5 @@ const server = serve({
 });
 
 console.log(`🚀 Server running at ${server.url}`);
+
+startBackgroundTasks();

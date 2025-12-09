@@ -94,3 +94,18 @@ export async function makeSQLite(url: string): Promise<WrappedSQL> {
 
   return sql;
 }
+
+/**
+ * Run SQLite maintenance tasks.
+ * - optimize: Updates query planner statistics (fast, safe to run frequently)
+ * - vacuum: Reclaims space and defragments (slow, locks DB, run infrequently)
+ */
+export async function runSQLiteMaintenance(opts: {
+  sql: WrappedSQL;
+  vacuum?: boolean;
+}): Promise<void> {
+  await opts.sql`PRAGMA optimize`;
+  if (opts.vacuum) {
+    await opts.sql`VACUUM`;
+  }
+}

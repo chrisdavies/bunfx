@@ -3,6 +3,7 @@
 export {
   makeSQL,
   makeSQLite,
+  runSQLiteMaintenance,
   type WrappedSQL,
   type WrappedTransactionSQL,
 } from "./db/sql";

@@ -23,6 +23,11 @@ const envSchema = z
     NODE_ENV: z.enum(["development", "production"]).default("development"),
     MAX_SECRET_SIZE_KB: z.coerce.number().default(10),
     MAX_SECRET_EXPIRATION_DAYS: z.coerce.number().default(30),
+    // Time in UTC when maintenance runs (HH:MM). Default 07:00 = 2AM EST / 3AM EDT
+    MAINTENANCE_TIME_UTC: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/)
+      .default("07:00"),
   })
   .and(mailerSchema);
 

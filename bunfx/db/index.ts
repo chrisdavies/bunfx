@@ -1,1 +1,1 @@
-export { makeSQL, makeSQLite } from "./sql";
+export { makeSQL, makeSQLite, runSQLiteMaintenance } from "./sql";
