@@ -1,4 +1,5 @@
 import { ClientError, endpoint, JSONResponse } from "bunfx";
+import { htm } from "bunfx/htm";
 import { type MailerOpts, makeMailer } from "bunfx/mailer";
 import { z } from "zod";
 import { config } from "@/config";
@@ -60,11 +61,57 @@ export const sendLoginCode = endpoint({
       from: "noreply@example.com",
       to: [opts.email],
       subject: "Your login link",
-      html: `
-        <p>Click the link below to sign in:</p>
-        <p><a href="${loginUrl}">${loginUrl}</a></p>
-        <p>This link expires in ${config.LOGIN_CODE_TTL_MINUTES} minutes.</p>
-      `,
+      html: htm`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0f0f0f; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; background-color: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 32px;">
+          <tr>
+            <td style="text-align: center; padding-bottom: 24px;">
+              <span style="font-size: 32px;">🔐</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #e5e5e5; font-size: 20px; font-weight: 600; text-align: center; padding-bottom: 8px;">
+              Sign in to Secrets
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #a3a3a3; font-size: 14px; text-align: center; padding-bottom: 24px; line-height: 1.5;">
+              Click the button below to sign in. This link expires in ${config.LOGIN_CODE_TTL_MINUTES} minutes.
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <a href="${htm.url(loginUrl)}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; font-size: 14px; font-weight: 500; text-decoration: none; padding: 12px 24px; border-radius: 8px;">
+                Sign in
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #a3a3a3; font-size: 12px; text-align: center; line-height: 1.5;">
+              If the button doesn't work, copy and paste this URL into your browser:
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #3b82f6; font-size: 12px; text-align: center; word-break: break-all; padding-top: 8px;">
+              ${loginUrl}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `.toString(),
     });
 
     return;
