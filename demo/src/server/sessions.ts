@@ -1,9 +1,8 @@
 import { ClientError } from "bunfx";
-import { makeSessionStore, makeSQL, type Session } from "bunfx/server";
+import { makeSessionStore, type Session } from "bunfx/server";
 import { config } from "../config";
+import { sql } from "../db";
 import type { UserRow } from "../db-schema/public";
-
-const sql = makeSQL(config.DATABASE_URL);
 
 /**
  * Session data stored in the encrypted cookie

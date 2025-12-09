@@ -15,7 +15,7 @@ const mailerSchema = z.discriminatedUnion("MAILER_PROVIDER", [
 
 const envSchema = z
   .object({
-    DATABASE_URL: z.string(),
+    DATABASE_PATH: z.string().default("./data.db"),
     APP_SECRET: z.string(),
     APP_URL: z.string().default("http://localhost:3000"),
     LOGIN_CODE_TTL_MINUTES: z.coerce.number().default(15),

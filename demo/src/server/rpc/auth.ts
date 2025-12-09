@@ -1,12 +1,10 @@
 import { ClientError, endpoint, JSONResponse } from "bunfx";
-import { makeSQL } from "bunfx/db";
 import { type MailerOpts, makeMailer } from "bunfx/mailer";
 import { z } from "zod";
 import { config } from "@/config";
+import { sql } from "@/db";
 import type { LoginCodeRow, UserRow } from "@/db-schema/public";
 import { getSessionUser, sessions } from "@/server/sessions";
-
-const sql = makeSQL(config.DATABASE_URL);
 
 const mailerOpts: MailerOpts =
   config.MAILER_PROVIDER === "mailgun"

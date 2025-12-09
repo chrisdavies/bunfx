@@ -70,3 +70,22 @@ function wrapSQL<T extends SQL | TransactionSQL>(sql: T): T {
 export function makeSQL(connectionString: string): WrappedSQL {
   return wrapSQL(new SQL(connectionString)) as unknown as WrappedSQL;
 }
+
+/**
+ * Create a SQLite connection with sensible default pragmas.
+ * - WAL mode for better concurrency
+ * - Foreign keys enabled
+ * - 5s busy timeout
+ * - 20MB cache
+ */
+export async function makeSQLite(filepath: string): Promise<WrappedSQL> {
+  const sql = wrapSQL(new SQL(`sqlite://${filepath}`)) as unknown as WrappedSQL;
+
+  await sql`PRAGMA journal_mode = WAL`;
+  await sql`PRAGMA synchronous = NORMAL`;
+  await sql`PRAGMA foreign_keys = ON`;
+  await sql`PRAGMA busy_timeout = 5000`;
+  await sql`PRAGMA cache_size = -20000`;
+
+  return sql;
+}
