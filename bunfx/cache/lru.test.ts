@@ -1,19 +1,20 @@
 import { expect, mock, test } from "bun:test";
 import { makeLRUCache } from "./lru";
 
+const noopFetcher = () => Promise.resolve(undefined as never);
+
 test("basic set and get", async () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   cache.set("b", "value-b");
 
   expect(await cache.get("a")).toBe("value-a");
   expect(await cache.get("b")).toBe("value-b");
-  expect(await cache.get("c")).toBeUndefined();
 });
 
 test("has and delete", () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   expect(cache.has("a")).toBe(true);
@@ -25,7 +26,7 @@ test("has and delete", () => {
 });
 
 test("clear", async () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   cache.set("b", "value-b");
@@ -33,11 +34,10 @@ test("clear", async () => {
 
   cache.clear();
   expect(cache.size).toBe(0);
-  expect(await cache.get("a")).toBeUndefined();
 });
 
 test("evicts oldest when maxSize exceeded", async () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   cache.set("b", "value-b");
@@ -45,14 +45,14 @@ test("evicts oldest when maxSize exceeded", async () => {
   cache.set("d", "value-d"); // Should evict "a"
 
   expect(cache.size).toBe(3);
-  expect(await cache.get("a")).toBeUndefined();
+  expect(cache.has("a")).toBe(false);
   expect(await cache.get("b")).toBe("value-b");
   expect(await cache.get("c")).toBe("value-c");
   expect(await cache.get("d")).toBe("value-d");
 });
 
 test("get updates LRU order", async () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   cache.set("b", "value-b");
@@ -65,13 +65,13 @@ test("get updates LRU order", async () => {
   cache.set("d", "value-d");
 
   expect(await cache.get("a")).toBe("value-a");
-  expect(await cache.get("b")).toBeUndefined();
+  expect(cache.has("b")).toBe(false);
   expect(await cache.get("c")).toBe("value-c");
   expect(await cache.get("d")).toBe("value-d");
 });
 
 test("set updates LRU order for existing key", async () => {
-  const cache = makeLRUCache<string>({ maxSize: 3 });
+  const cache = makeLRUCache<string>({ maxSize: 3, fetcher: noopFetcher });
 
   cache.set("a", "value-a");
   cache.set("b", "value-b");
@@ -84,7 +84,7 @@ test("set updates LRU order for existing key", async () => {
   cache.set("d", "value-d");
 
   expect(await cache.get("a")).toBe("value-a-updated");
-  expect(await cache.get("b")).toBeUndefined();
+  expect(cache.has("b")).toBe(false);
 });
 
 test("fetch function populates cache", async () => {
@@ -92,7 +92,7 @@ test("fetch function populates cache", async () => {
 
   const cache = makeLRUCache<string>({
     maxSize: 3,
-    fetch: fetchFn,
+    fetcher: fetchFn,
   });
 
   const value = await cache.get("x");
@@ -116,7 +116,7 @@ test("concurrent fetches for same key are deduplicated", async () => {
 
   const cache = makeLRUCache<string>({
     maxSize: 3,
-    fetch: fetchFn,
+    fetcher: fetchFn,
   });
 
   // Start two concurrent gets
@@ -144,7 +144,7 @@ test("fetch errors are not cached", async () => {
 
   const cache = makeLRUCache<string>({
     maxSize: 3,
-    fetch: fetchFn,
+    fetcher: fetchFn,
   });
 
   // First call fails
@@ -162,7 +162,7 @@ test("maxSize=0 calls fetch but does not cache", async () => {
 
   const cache = makeLRUCache<string>({
     maxSize: 0,
-    fetch: fetchFn,
+    fetcher: fetchFn,
   });
 
   const value1 = await cache.get("x");
@@ -189,7 +189,7 @@ test("manual set overrides pending fetch", async () => {
 
   const cache = makeLRUCache<string>({
     maxSize: 3,
-    fetch: fetchFn,
+    fetcher: fetchFn,
   });
 
   // Start a fetch

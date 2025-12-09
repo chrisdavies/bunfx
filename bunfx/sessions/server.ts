@@ -200,7 +200,7 @@ export function makeSessionStore<T>(
 
   const cache = makeLRUCache<Session<T>>({
     maxSize: lruCacheSize,
-    async fetch(encrypted: string) {
+    async fetcher(encrypted: string) {
       const payload = await decryptPayload<T>(encrypted, secret);
       return {
         id: payload.id,

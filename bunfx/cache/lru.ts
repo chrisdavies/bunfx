@@ -1,12 +1,12 @@
-/**
- * Note: Storing Promise<T> as the value type is not well-supported because
- * JavaScript automatically flattens nested promises when awaited. If you need
- * to cache promises, wrap them in an object: { promise: Promise<T> }
- */
+import { type LinkedListNode, makeLinkedList } from "./linked-list";
 
 export type LRUCacheOptions<T> = {
+  /** Maximum number of items to store. Set to 0 to disable caching (fetcher still called). */
   maxSize: number;
-  fetch?: (key: string) => Promise<T>;
+  /** Maximum time in milliseconds before an item expires. Set to 0 to disable expiration. */
+  maxLifetimeMs?: number;
+  /** Async function to fetch items by key. */
+  fetcher: (key: string) => Promise<T>;
 };
 
 export type LRUCache<T> = {
@@ -18,81 +18,119 @@ export type LRUCache<T> = {
   readonly size: number;
 };
 
-export function makeLRUCache<T>(options: LRUCacheOptions<T>): LRUCache<T> {
-  const { maxSize, fetch } = options;
-  const items = new Map<string, T | Promise<T>>();
+type CacheItem<T> = {
+  key: string;
+  value: T | Promise<T>;
+  createdAt: number;
+};
 
-  function evictIfNeeded() {
-    if (items.size > maxSize) {
-      const firstKey = items.keys().next().value;
-      if (firstKey !== undefined) {
-        items.delete(firstKey);
-      }
+export function makeLRUCache<T>(options: LRUCacheOptions<T>): LRUCache<T> {
+  const { maxSize, maxLifetimeMs = 0, fetcher } = options;
+
+  const list = makeLinkedList<CacheItem<T>>();
+  const nodes = new Map<string, LinkedListNode<CacheItem<T>>>();
+
+  function evictTail() {
+    const node = list.removeTail();
+    if (node) {
+      nodes.delete(node.data.key);
     }
   }
 
-  function touch(key: string, value: T | Promise<T>) {
-    items.delete(key);
-    items.set(key, value);
+  function touch(node: LinkedListNode<CacheItem<T>>) {
+    if (maxSize <= 0) return;
+    list.moveToHead(node);
+  }
+
+  function getCachedNode(
+    key: string,
+  ): LinkedListNode<CacheItem<T>> | undefined {
+    const node = nodes.get(key);
+    if (!node) return;
+    if (maxLifetimeMs > 0 && Date.now() - node.data.createdAt > maxLifetimeMs) {
+      list.unlink(node);
+      nodes.delete(key);
+      return;
+    }
+    touch(node);
+    return node;
+  }
+
+  function setNode<V extends T | Promise<T>>(
+    key: string,
+    value: V,
+  ): LinkedListNode<CacheItem<T>> {
+    const now = maxLifetimeMs > 0 ? Date.now() : 0;
+    let node = nodes.get(key);
+    if (node) {
+      node.data.value = value;
+      node.data.createdAt = now;
+      touch(node);
+    } else {
+      node = list.createNode({ key, value, createdAt: now });
+      nodes.set(key, node);
+      if (maxSize > 0) {
+        list.linkHead(node);
+        if (nodes.size > maxSize) {
+          evictTail();
+        }
+      }
+    }
+    return node;
+  }
+
+  function beginFetch(key: string): LinkedListNode<CacheItem<T>> {
+    const promise = fetcher(key).then(
+      (value) => {
+        const node = nodes.get(key);
+        if (node?.data.value === promise) {
+          setNode(key, value);
+        }
+        return value;
+      },
+      (err) => {
+        const node = nodes.get(key);
+        if (node?.data.value === promise) {
+          list.unlink(node);
+          nodes.delete(key);
+        }
+        throw err;
+      },
+    );
+    return setNode(key, promise);
   }
 
   return {
     get size() {
-      return items.size;
+      return nodes.size;
     },
 
-    async get(key: string): Promise<T | undefined> {
-      const cached = items.get(key);
-
-      if (cached !== undefined) {
-        touch(key, cached);
-        return cached;
-      }
-
-      if (!fetch) return;
-
-      // maxSize=0 means no caching, just fetch
-      if (maxSize === 0) {
-        return fetch(key);
-      }
-
-      const promise = fetch(key)
-        .then((value) => {
-          // Replace pending promise with resolved value
-          if (items.get(key) === promise) {
-            touch(key, value);
-          }
-          return value;
-        })
-        .catch((err) => {
-          // Don't cache errors - remove the pending entry
-          if (items.get(key) === promise) {
-            items.delete(key);
-          }
-          throw err;
-        });
-
-      touch(key, promise);
-      evictIfNeeded();
-
-      return promise;
+    get(key: string): Promise<T | undefined> {
+      if (maxSize === 0) return fetcher(key);
+      const cached = getCachedNode(key);
+      if (cached) return Promise.resolve(cached.data.value) as Promise<T>;
+      return beginFetch(key).data.value as Promise<T>;
     },
 
     set(key: string, value: T): void {
-      touch(key, value);
-      evictIfNeeded();
+      setNode(key, value);
     },
 
     delete(key: string): boolean {
-      return items.delete(key);
+      const node = nodes.get(key);
+      if (!node) return false;
+      list.unlink(node);
+      nodes.delete(key);
+      return true;
     },
 
     has(key: string): boolean {
-      return items.has(key);
+      return nodes.has(key);
     },
 
     clear(): void {
-      items.clear();
+      nodes.clear();
+      list.clear();
     },
   };
 }
