@@ -20,10 +20,10 @@ describe("logger", () => {
     log.info("hello world", { user: "alice" });
 
     expect(entries.length).toBe(1);
-    expect(entries[0].level).toBe("info");
-    expect(entries[0].message).toBe("hello world");
-    expect(entries[0].user).toBe("alice");
-    expect(entries[0].timestamp).toBeDefined();
+    expect(entries[0]!.level).toBe("info");
+    expect(entries[0]!.message).toBe("hello world");
+    expect(entries[0]!.user).toBe("alice");
+    expect(entries[0]!.timestamp).toBeDefined();
   });
 
   test("respects minLevel", () => {
@@ -49,10 +49,10 @@ describe("logger", () => {
       api_key: "key123",
     });
 
-    expect(entries[0].username).toBe("alice");
-    expect(entries[0].password).toBe("...");
-    expect(entries[0].token).toBe("...");
-    expect(entries[0].api_key).toBe("...");
+    expect(entries[0]!.username).toBe("alice");
+    expect(entries[0]!.password).toBe("...");
+    expect(entries[0]!.token).toBe("...");
+    expect(entries[0]!.api_key).toBe("...");
   });
 
   test("redact: { enabled: false } skips redaction but still serializes errors", () => {
@@ -64,11 +64,11 @@ describe("logger", () => {
     });
 
     log.info("login", { password: "secret123" });
-    expect(entries[0].password).toBe("secret123");
+    expect(entries[0]!.password).toBe("secret123");
 
     const err = new Error("boom");
     log.error("failed", { err });
-    const serialized = entries[1].err as { message: string; stack: string };
+    const serialized = entries[1]!.err as { message: string; stack: string };
     expect(serialized.message).toBe("boom");
   });
 
@@ -86,9 +86,9 @@ describe("logger", () => {
       bar: "also secret",
     });
 
-    expect(entries[0].foo).toBe("...");
-    expect(entries[0].bar).toBe("...");
-    expect(entries[0].password).toBe("visible");
+    expect(entries[0]!.foo).toBe("...");
+    expect(entries[0]!.bar).toBe("...");
+    expect(entries[0]!.password).toBe("visible");
   });
 
   test("child logger inherits and extends context", () => {
@@ -98,8 +98,8 @@ describe("logger", () => {
     const child = log.child({ requestId: "123" });
     child.info("request started");
 
-    expect(entries[0].requestId).toBe("123");
-    expect(entries[0].message).toBe("request started");
+    expect(entries[0]!.requestId).toBe("123");
+    expect(entries[0]!.message).toBe("request started");
   });
 
   test("withLogContext adds context to logs", () => {
@@ -110,7 +110,7 @@ describe("logger", () => {
       log.info("inside context");
     });
 
-    expect(entries[0].traceId).toBe("abc");
+    expect(entries[0]!.traceId).toBe("abc");
   });
 
   test("all log levels work", () => {
@@ -144,7 +144,7 @@ describe("logger", () => {
     log.info("test", data);
 
     expect(data.password).toBe("secret");
-    expect(entries[0].password).toBe("...");
+    expect(entries[0]!.password).toBe("...");
   });
 
   test("serializes errors with message and stack", () => {
@@ -154,7 +154,7 @@ describe("logger", () => {
     const err = new Error("something broke");
     log.error("failed", { err });
 
-    const serialized = entries[0].err as { message: string; stack: string };
+    const serialized = entries[0]!.err as { message: string; stack: string };
     expect(serialized.message).toBe("something broke");
     expect(serialized.stack).toContain("Error: something broke");
   });
@@ -170,7 +170,7 @@ describe("logger", () => {
     log.debug("should not appear");
 
     expect(entries.length).toBe(1);
-    expect(entries[0].message).toBe("should appear");
+    expect(entries[0]!.message).toBe("should appear");
 
     process.env.LOG_LEVEL = original;
   });

@@ -1,9 +1,9 @@
 {
-	"workspaces": [
-		"bunfx",
-		"demo"
-	],
-	"scripts": {
-		"check": "biome check bunfx/ demo/ && cd bunfx && bunx tsc --noEmit"
-	}
+  "workspaces": [
+    "bunfx",
+    "secrets-share"
+  ],
+  "scripts": {
+    "check": "biome check bunfx/ secrets-share/ && cd bunfx && bunx tsc --noEmit"
+  }
 }
