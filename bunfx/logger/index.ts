@@ -175,16 +175,15 @@ function emit(
 ) {
   if (logLevelOrdinal[level] < state.minLevel) return;
 
-  let entry: LogEntry = {
-    level,
-    timestamp: Date.now(),
-    message,
-    ...getLogContext(),
-    ...state.context,
-    ...data,
-  };
-
-  entry = transform(entry, state.redact);
+  // Transform data first, then build entry by mutation
+  let entry = transform(data, state.redact) as LogEntry;
+  if (entry === data) {
+    entry = { ...data } as LogEntry;
+  }
+  entry.level = level;
+  entry.timestamp = Date.now();
+  entry.message = message;
+  Object.assign(entry, getLogContext(), state.context);
 
   state.output(state.format(entry));
 }
