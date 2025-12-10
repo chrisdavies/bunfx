@@ -8,6 +8,7 @@ export {
   type WrappedTransactionSQL,
 } from "./db/sql";
 export * from "./gentypes";
+export * from "./logger";
 export * from "./migrations/migrate";
 export * from "./rpc/server";
 export * from "./sessions/server";

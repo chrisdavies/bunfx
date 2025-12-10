@@ -1,10 +1,13 @@
 import { serve } from "bun";
+import { createLogger } from "bunfx/logger";
 import { makeDevmailHandler } from "bunfx/mailer";
 import { makeRPCHandler } from "bunfx/server";
 import { config } from "./config";
 import index from "./index.html";
 import { endpoints } from "./server/rpc";
 import { startBackgroundTasks } from "./tasks";
+
+const log = createLogger();
 
 const rpcHandler = makeRPCHandler(endpoints);
 
@@ -37,6 +40,6 @@ const server = serve({
   },
 });
 
-console.log(`🚀 Server running at ${server.url}`);
+log.info("Server started", { url: server.url.toString() });
 
 startBackgroundTasks();
