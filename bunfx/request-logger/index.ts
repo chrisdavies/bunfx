@@ -11,10 +11,7 @@ export type RequestLoggerOptions = {
   ignorePaths?: (string | RegExp)[];
 };
 
-const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
 const buf = new Uint8Array(6);
-const nodeId = crypto.randomUUID().slice(-6);
-const toChar = (i: number) => chars[buf[i]! % chars.length]!;
 
 /**
  * Generates a unique request ID like "r-abc123defxyz"
@@ -22,7 +19,7 @@ const toChar = (i: number) => chars[buf[i]! % chars.length]!;
  */
 export function genRequestId(): string {
   crypto.getRandomValues(buf);
-  return `r-${toChar(0)}${toChar(1)}${toChar(2)}${nodeId}${toChar(3)}${toChar(4)}${toChar(5)}`;
+  return `r-${buf.toBase64()}`;
 }
 
 function shouldIgnore(
