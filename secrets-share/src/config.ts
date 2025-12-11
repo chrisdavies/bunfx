@@ -21,6 +21,9 @@ const envSchema = z
     LOGIN_CODE_TTL_MINUTES: z.coerce.number().default(15),
     SESSION_TTL_SECONDS: z.coerce.number().optional(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
+    LOG_LEVEL: z
+      .enum(["trace", "debug", "info", "warn", "error", "fatal"])
+      .default("info"),
     MAX_SECRET_SIZE_KB: z.coerce.number().default(10),
     MAX_SECRET_EXPIRATION_DAYS: z.coerce.number().default(30),
     // Time in UTC when maintenance runs (HH:MM). Default 07:00 = 2AM EST / 3AM EDT
