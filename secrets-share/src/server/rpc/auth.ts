@@ -1,10 +1,11 @@
 import { ClientError, endpoint, JSONResponse } from "bunfx";
+import { camelize } from "bunfx/db";
 import { htm } from "bunfx/htm";
 import { type MailerOpts, makeMailer } from "bunfx/mailer";
 import { z } from "zod";
 import { config } from "@/config";
 import { sql } from "@/db";
-import type { LoginCodeRow, UserRow } from "@/db-schema/public";
+import type { LoginCodeRow, UserRow } from "@/db-schema/db";
 import { getSessionUser, sessions } from "@/server/sessions";
 
 const mailerOpts: MailerOpts =
@@ -38,9 +39,9 @@ export const sendLoginCode = endpoint({
   }),
   async fn({ opts }) {
     // Find user - if not found, silently succeed (don't leak whether email exists)
-    const [user] = await sql<UserRow>`
+    const [user] = await camelize(sql<UserRow>`
       SELECT * FROM users WHERE email = ${opts.email}
-    `;
+    `);
 
     if (!user) {
       return;
@@ -51,8 +52,7 @@ export const sendLoginCode = endpoint({
 
     await sql`
       INSERT INTO login_codes ${sql({ user_id: user.id, code: hashedCode, created_at: new Date().toISOString() })}
-      ON CONFLICT (user_id) DO UPDATE
-        SET code = excluded.code, created_at = excluded.created_at
+      ON CONFLICT (user_id) DO UPDATE SET code = excluded.code, created_at = excluded.created_at
     `;
 
     const loginUrl = `${config.APP_URL}/verify?user=${user.id}&code=${code}`;
@@ -125,10 +125,10 @@ export const verifyLoginCode = endpoint({
   }),
   async fn({ opts }) {
     const hashedCode = hmacHash(opts.code);
-    const [row] = await sql<LoginCodeRow>`
+    const [row] = await camelize(sql<LoginCodeRow>`
       SELECT * FROM login_codes
       WHERE user_id = ${opts.userId} AND code = ${hashedCode}
-    `;
+    `);
     const expirationDate = new Date(
       Date.now() - config.LOGIN_CODE_TTL_MINUTES * 60 * 1000,
     );
@@ -139,9 +139,9 @@ export const verifyLoginCode = endpoint({
         "invalid_code",
       );
     }
-    const [user] = await sql<UserRow>`
+    const [user] = await camelize(sql<UserRow>`
       SELECT * FROM users WHERE id = ${row.userId}
-    `;
+    `);
     if (!user) {
       throw ClientError.notFound("User not found", "user_not_found");
     }

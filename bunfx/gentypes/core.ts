@@ -79,13 +79,8 @@ function capitalizeFirst(s: string): string {
   return first.toUpperCase() + s.slice(1);
 }
 
-function camelCase(s: string): string {
-  const [prefix, ...rest] = s.split("_");
-  return (prefix ?? "") + rest.map(capitalizeFirst).join("");
-}
-
 function pascalCase(s: string): string {
-  return capitalizeFirst(camelCase(s));
+  return s.split("_").map(capitalizeFirst).join("");
 }
 
 function tableNameToTypeName(tableName: string): string {
@@ -476,11 +471,10 @@ function generateTableType(
 
   for (const col of table.columns) {
     const tsType = getColumnType(col, isPostgres, overrideCtx);
-    const propName = camelCase(col.columnName);
     const optional = col.isNullable ? "?" : "";
     const nullUnion = col.isNullable ? " | null" : "";
 
-    lines.push(`  ${propName}${optional}: ${tsType}${nullUnion};`);
+    lines.push(`  ${col.columnName}${optional}: ${tsType}${nullUnion};`);
   }
 
   lines.push("};");
@@ -501,12 +495,11 @@ function generateInsertType(
 
   for (const col of table.columns) {
     const tsType = getColumnType(col, isPostgres, overrideCtx);
-    const propName = camelCase(col.columnName);
     const hasDefault = col.columnDefault !== null;
     const optional = col.isNullable || hasDefault ? "?" : "";
     const nullUnion = col.isNullable ? " | null" : "";
 
-    lines.push(`  ${propName}${optional}: ${tsType}${nullUnion};`);
+    lines.push(`  ${col.columnName}${optional}: ${tsType}${nullUnion};`);
   }
 
   lines.push("};");

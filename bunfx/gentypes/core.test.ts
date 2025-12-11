@@ -118,7 +118,7 @@ describe("generateTypeFiles", () => {
       expect(content).toMatch(/InsertUserRow[\s\S]*?id: number;/);
       expect(content).toMatch(/InsertUserRow[\s\S]*?name: string;/);
       // created_at is optional because it has a default
-      expect(content).toMatch(/InsertUserRow[\s\S]*?createdAt\?: string;/);
+      expect(content).toMatch(/InsertUserRow[\s\S]*?created_at\?: string;/);
     });
 
     test("generates types for multiple tables", () => {
@@ -136,7 +136,7 @@ describe("generateTypeFiles", () => {
 
       expect(content).toContain("export type UserRow = {");
       expect(content).toContain("export type PostRow = {");
-      expect(content).toContain("userId: number;");
+      expect(content).toContain("user_id: number;");
     });
   });
 
@@ -159,7 +159,7 @@ describe("generateTypeFiles", () => {
       expect(content).toContain("export type BoxRow = {");
     });
 
-    test("converts snake_case to camelCase for properties", () => {
+    test("preserves snake_case for properties", () => {
       const schema = makeSchema([
         makeTable("users", [
           { name: "first_name", type: "text" },
@@ -172,9 +172,9 @@ describe("generateTypeFiles", () => {
       const files = generateTypeFiles(schema, config);
       const content = getContent(files);
 
-      expect(content).toContain("firstName: string;");
-      expect(content).toContain("lastName: string;");
-      expect(content).toContain("createdAt: string;");
+      expect(content).toContain("first_name: string;");
+      expect(content).toContain("last_name: string;");
+      expect(content).toContain("created_at: string;");
     });
   });
 
@@ -196,13 +196,13 @@ describe("generateTypeFiles", () => {
       const files = generateTypeFiles(schema, config);
       const content = getContent(files);
 
-      expect(content).toContain("intCol?: number | null;");
-      expect(content).toContain("realCol?: number | null;");
-      expect(content).toContain("textCol?: string | null;");
-      expect(content).toContain("blobCol?: Uint8Array | null;");
-      expect(content).toContain("boolCol?: boolean | null;");
-      expect(content).toContain("varcharCol?: string | null;");
-      expect(content).toContain("numericCol?: number | null;");
+      expect(content).toContain("int_col?: number | null;");
+      expect(content).toContain("real_col?: number | null;");
+      expect(content).toContain("text_col?: string | null;");
+      expect(content).toContain("blob_col?: Uint8Array | null;");
+      expect(content).toContain("bool_col?: boolean | null;");
+      expect(content).toContain("varchar_col?: string | null;");
+      expect(content).toContain("numeric_col?: number | null;");
     });
   });
 
@@ -331,11 +331,11 @@ describe("generateTypeFiles", () => {
       const files = generateTypeFiles(schema, config);
       const content = getContent(files);
 
-      expect(content).toContain("uuidCol?: string | null;");
-      expect(content).toContain("jsonCol?: unknown | null;");
-      expect(content).toContain("tsCol?: Date | null;");
-      expect(content).toContain("byteaCol?: Uint8Array | null;");
-      expect(content).toContain("textArr?: string[] | null;");
+      expect(content).toContain("uuid_col?: string | null;");
+      expect(content).toContain("json_col?: unknown | null;");
+      expect(content).toContain("ts_col?: Date | null;");
+      expect(content).toContain("bytea_col?: Uint8Array | null;");
+      expect(content).toContain("text_arr?: string[] | null;");
     });
   });
 

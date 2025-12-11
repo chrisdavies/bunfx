@@ -1,12 +1,6 @@
 // Server-only exports (uses Bun builtins)
 
-export {
-  makeSQL,
-  makeSQLite,
-  runSQLiteMaintenance,
-  type WrappedSQL,
-  type WrappedTransactionSQL,
-} from "./db/sql";
+export * from "./db";
 export * from "./gentypes";
 export * from "./logger";
 export * from "./migrations/migrate";

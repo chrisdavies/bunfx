@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { transform } from "../util/transform";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 
@@ -65,64 +66,16 @@ const DEFAULT_REDACT_PATTERN =
 
 const DEFAULT_CENSOR = "...";
 
-function isValueType(v: unknown): boolean {
-  if (v === null || (typeof v !== "object" && typeof v !== "function")) {
-    return true;
-  }
-  return (
-    v instanceof Date ||
-    v instanceof RegExp ||
-    v instanceof Number ||
-    v instanceof String ||
-    v instanceof Boolean
-  );
-}
-
 type RedactConfig = {
   pattern: RegExp;
   censor: string;
 };
 
-function transform<T>(
-  obj: T,
-  redact: RedactConfig | undefined,
-  seen = new WeakSet(),
-): T {
-  if (isValueType(obj)) {
-    return obj;
-  }
-  if (obj instanceof Error) {
-    return { message: obj.message, stack: obj.stack } as T;
-  }
-  if (seen.has(obj as object)) {
-    return "[Circular]" as T;
-  }
-  seen.add(obj as object);
-
-  let result = obj;
-  const assign = (k: string | number, v: unknown) => {
-    if (result === obj) {
-      result = (Array.isArray(obj) ? [...obj] : { ...obj }) as T;
-    }
-    (result as Record<string | number, unknown>)[k] = v;
-  };
-
-  for (const k in obj) {
-    if (redact?.pattern.test(k)) {
-      assign(k, redact.censor);
-      continue;
-    }
-    const v1 = (obj as Record<string | number, unknown>)[k];
-    if (isValueType(v1)) {
-      continue;
-    }
-    const v2 = transform(v1, redact, seen);
-    if (v1 !== v2) {
-      assign(k, v2);
-    }
-  }
-
-  return result;
+function redact<T>(obj: T, config: RedactConfig | undefined): T {
+  return transform(obj, {
+    test: (k) => !!config && config.pattern.test(k),
+    value: () => config!.censor,
+  });
 }
 
 export const jsonFormat: Formatter = (entry) => JSON.stringify(entry);
@@ -197,8 +150,8 @@ function emit(
 ) {
   if (logLevelOrdinal[level] < state.minLevel) return;
 
-  // Transform data first, then build entry by mutation
-  let entry = transform(data, state.redact) as LogEntry;
+  // Redact data first, then build entry by mutation
+  let entry = redact(data, state.redact) as LogEntry;
   if (entry === data) {
     entry = { ...data } as LogEntry;
   }

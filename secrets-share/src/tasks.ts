@@ -1,4 +1,4 @@
-import { runSQLiteMaintenance } from "bunfx/server";
+import { runSQLiteMaintenance } from "bunfx/db";
 import { config } from "./config";
 import { sql } from "./db";
 

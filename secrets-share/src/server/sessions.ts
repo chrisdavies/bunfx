@@ -2,7 +2,7 @@ import { ClientError } from "bunfx";
 import { makeSessionStore, type Session } from "bunfx/server";
 import { config } from "../config";
 import { sql } from "../db";
-import type { UserRow } from "../db-schema/public";
+import type { UserRow } from "../db-schema/db";
 
 /**
  * Session data stored in the encrypted cookie

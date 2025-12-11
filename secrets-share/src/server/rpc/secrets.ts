@@ -1,4 +1,5 @@
 import { ClientError, endpoint } from "bunfx";
+import { camelize } from "bunfx/db";
 import { z } from "zod";
 import { config } from "@/config";
 import { sql } from "@/db";
@@ -63,7 +64,7 @@ export const get = endpoint({
 
     // Atomically increment download count and return the secret
     // Only succeeds if: code matches, not expired, and under download limit
-    const [secret] = await sql<SecretRow>`
+    const [secret] = await camelize(sql<SecretRow>`
       UPDATE secrets
       SET download_count = download_count + 1
       WHERE id = ${opts.id}
@@ -71,7 +72,7 @@ export const get = endpoint({
         AND expires_at > ${now}
         AND download_count < max_downloads
       RETURNING *
-    `;
+    `);
 
     if (!secret) {
       throw ClientError.notFound("Secret not found", "not_found");
