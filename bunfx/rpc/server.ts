@@ -1,4 +1,5 @@
 import type { ZodError } from "zod";
+import type { Logger } from "../logger";
 import type { EndpointFn } from "./endpoint";
 import { ClientError } from "./error";
 
@@ -7,6 +8,8 @@ type EndpointNamespace = Record<string, EndpointModule>;
 
 export type RPCHandlerOptions = {
   prefix?: string;
+  /** Logger for tracing RPC opts (optional) */
+  log?: Logger;
 };
 
 export function makeRPCHandler(
@@ -53,6 +56,9 @@ export function makeRPCHandler(
       // Parse the request body as JSON
       const body = await req.json();
       const opts = def.schema.parse(body);
+
+      options.log?.trace(`rpc ${endpointPath}`, opts);
+
       const fnResult = await def.fn({ opts, req });
 
       // If endpoint returns a Response directly, use it

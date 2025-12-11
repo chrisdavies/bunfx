@@ -39,7 +39,7 @@ export type Logger = {
   child: (context: LogContext) => Logger;
 };
 
-type LogFn = (message: string, data?: Record<string, unknown>) => void;
+type LogFn = (message: string, data?: unknown) => void;
 
 const logLevelOrdinal: Record<LogLevel, number> = {
   trace: 10,
@@ -61,7 +61,7 @@ export function getLogContext(): LogContext {
 }
 
 const DEFAULT_REDACT_PATTERN =
-  /^(password|secret|token|apikey|api_key|authorization|cookie|session|credential|private|auth)$/i;
+  /^(password|secret|token|apikey|api_key|authorization|cookie|session|credential|private|auth|encrypted.*)$/i;
 
 const DEFAULT_CENSOR = "...";
 
@@ -138,26 +138,48 @@ const COLORS: Record<LogLevel, string> = {
 const RESET = "\x1b[0m";
 const DIM = "\x1b[2m";
 
-export const prettyFormat: Formatter = (entry) => {
-  const { level, timestamp, message, ...rest } = entry;
-
-  const time = new Date(timestamp).toISOString().slice(11, 23);
-  const color = COLORS[level] ?? "";
-  const levelStr = level.toUpperCase().padEnd(5);
-
-  let line = `${DIM}${time}${RESET} ${color}${levelStr}${RESET} ${message}`;
-
-  for (const k in rest) {
-    const v = rest[k];
-    if (typeof v === "object" && v !== null) {
-      line += `\n  ${DIM}${k}:${RESET} ${JSON.stringify(v)}`;
-    } else {
-      line += `\n  ${DIM}${k}:${RESET} ${v}`;
-    }
-  }
-
-  return line;
+export type PrettyFormatOptions = {
+  /** Keys to include on the prefix line (after time, before level) */
+  prefixKeys?: string[];
 };
+
+export function makePrettyFormat(options: PrettyFormatOptions = {}): Formatter {
+  const prefixKeys = options.prefixKeys ?? [];
+  const prefixKeySet = new Set(prefixKeys);
+
+  return (entry) => {
+    const { level, timestamp, message, ...rest } = entry;
+
+    const time = new Date(timestamp).toISOString().slice(11, 23);
+    const color = COLORS[level] ?? "";
+
+    // Build prefix: time, prefixKeys, level, message
+    let line = `${DIM}${time}${RESET}`;
+
+    for (const key of prefixKeys) {
+      if (key in rest) {
+        line += ` ${rest[key]}`;
+      }
+    }
+
+    line += ` ${color}${level.padEnd(5)}${RESET} ${message}`;
+
+    // Add remaining k/v pairs (excluding prefixKeys)
+    for (const k in rest) {
+      if (prefixKeySet.has(k)) continue;
+      const v = rest[k];
+      if (typeof v === "object" && v !== null) {
+        line += `\n  ${DIM}${k}:${RESET} ${JSON.stringify(v)}`;
+      } else {
+        line += `\n  ${DIM}${k}:${RESET} ${v}`;
+      }
+    }
+
+    return line;
+  };
+}
+
+export const prettyFormat: Formatter = makePrettyFormat();
 
 type LoggerState = {
   minLevel: number;
@@ -171,7 +193,7 @@ function emit(
   state: LoggerState,
   level: LogLevel,
   message: string,
-  data?: Record<string, unknown>,
+  data?: unknown,
 ) {
   if (logLevelOrdinal[level] < state.minLevel) return;
 

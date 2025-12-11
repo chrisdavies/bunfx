@@ -1,15 +1,22 @@
 import { serve } from "bun";
-import { createLogger } from "bunfx/logger";
+import { createLogger, makePrettyFormat } from "bunfx/logger";
 import { makeDevmailHandler } from "bunfx/mailer";
-import { makeRPCHandler } from "bunfx/server";
+import { makeRPCHandler, withRequestLogging } from "bunfx/server";
 import { config } from "./config";
 import index from "./index.html";
 import { endpoints } from "./server/rpc";
 import { startBackgroundTasks } from "./tasks";
 
-const log = createLogger();
+const log = createLogger({
+  format:
+    config.NODE_ENV === "production"
+      ? undefined // defaults to jsonFormat in production
+      : makePrettyFormat({ prefixKeys: ["requestId"] }),
+});
 
-const rpcHandler = makeRPCHandler(endpoints);
+const rpcHandler = withRequestLogging(makeRPCHandler(endpoints, { log }), {
+  log,
+});
 
 const devmailRoutes =
   config.MAILER_PROVIDER === "local"
