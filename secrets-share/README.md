@@ -14,3 +14,7 @@ bun dev
 ```bash
 bun start
 ```
+
+## Deployment
+
+See [deploy/README.md](deploy/README.md) for VPS deployment instructions.

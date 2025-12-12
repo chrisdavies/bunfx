@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+APP_DIR="$HOME/apps/bunfx"
+GIT_DIR="$HOME/repos/bunfx.git"
+
+echo "Deploying secrets-share..."
+
+# Checkout latest code
+mkdir -p "$APP_DIR"
+git --work-tree="$APP_DIR" --git-dir="$GIT_DIR" checkout -f main
+
+cd "$APP_DIR/secrets-share"
+
+# Install dependencies
+bun install --frozen-lockfile
+
+# Run migrations
+bun run migrate:up
+
+# Restart service
+sudo systemctl restart secrets-share
+
+echo "Deploy complete!"
