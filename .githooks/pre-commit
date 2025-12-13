@@ -1,8 +1,2 @@
-#!/bin/sh
-
-# Get staged files that biome can process
-staged_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|ts|jsx|tsx|json|jsonc)$')
-
-if [ -n "$staged_files" ]; then
-  biome check --staged --error-on-warnings
-fi
+#\!/bin/sh
+bun check

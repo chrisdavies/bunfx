@@ -4,6 +4,9 @@
     "secrets-share"
   ],
   "scripts": {
-    "check": "biome check bunfx/ secrets-share/ && cd bunfx && bunx tsc --noEmit"
+    "check": "bun scripts/check.ts"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
   }
 }

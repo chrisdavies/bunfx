@@ -39,7 +39,7 @@ export const sendLoginCode = endpoint({
   }),
   async fn({ opts }) {
     // Find user - if not found, silently succeed (don't leak whether email exists)
-    const [user] = await camelize(sql<UserRow>`
+    const [user] = await camelize(sql<UserRow[]>`
       SELECT * FROM users WHERE email = ${opts.email}
     `);
 
@@ -125,7 +125,7 @@ export const verifyLoginCode = endpoint({
   }),
   async fn({ opts }) {
     const hashedCode = hmacHash(opts.code);
-    const [row] = await camelize(sql<LoginCodeRow>`
+    const [row] = await camelize(sql<LoginCodeRow[]>`
       SELECT * FROM login_codes
       WHERE user_id = ${opts.userId} AND code = ${hashedCode}
     `);
@@ -133,13 +133,13 @@ export const verifyLoginCode = endpoint({
       Date.now() - config.LOGIN_CODE_TTL_MINUTES * 60 * 1000,
     );
     row && (await sql`DELETE FROM login_codes WHERE user_id = ${row.userId}`);
-    if (!row || row.createdAt <= expirationDate) {
+    if (!row || new Date(row.createdAt) <= expirationDate) {
       throw ClientError.badRequest(
         "Invalid or expired login code",
         "invalid_code",
       );
     }
-    const [user] = await camelize(sql<UserRow>`
+    const [user] = await camelize(sql<UserRow[]>`
       SELECT * FROM users WHERE id = ${row.userId}
     `);
     if (!user) {

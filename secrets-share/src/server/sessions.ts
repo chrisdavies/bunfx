@@ -45,7 +45,7 @@ export async function getSessionUser(
   const session = await sessions.get(req);
   if (!session) return null;
 
-  const [user] = await sql<UserRow>`
+  const [user] = await sql<UserRow[]>`
 		SELECT id, email FROM users WHERE id = ${session.data.userId}
 	`;
 

@@ -64,7 +64,7 @@ export const get = endpoint({
 
     // Atomically increment download count and return the secret
     // Only succeeds if: code matches, not expired, and under download limit
-    const [secret] = await camelize(sql<SecretRow>`
+    const [secret] = await camelize(sql<SecretRow[]>`
       UPDATE secrets
       SET download_count = download_count + 1
       WHERE id = ${opts.id}
