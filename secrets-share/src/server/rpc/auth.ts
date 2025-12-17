@@ -59,8 +59,13 @@ export const sendLoginCode = endpoint({
 
     const loginUrl = `${config.APP_URL}/verify?user=${user.id}&code=${code}`;
 
+    const mailFrom =
+      config.MAILER_PROVIDER === "mailgun"
+        ? config.MAIL_FROM ?? `noreply@${config.MAILGUN_DOMAIN}`
+        : "noreply@example.com";
+
     await mailer.send({
-      from: "noreply@example.com",
+      from: mailFrom,
       to: [opts.email],
       subject: "Your login link",
       html: htm`

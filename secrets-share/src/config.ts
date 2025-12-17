@@ -10,6 +10,7 @@ const mailerSchema = z.discriminatedUnion("MAILER_PROVIDER", [
     MAILER_PROVIDER: z.literal("mailgun"),
     MAILGUN_API_KEY: z.string(),
     MAILGUN_DOMAIN: z.string(),
+    MAIL_FROM: z.string().optional(),
   }),
   z.object({
     MAILER_PROVIDER: z.literal("noop"),
