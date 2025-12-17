@@ -11,6 +11,9 @@ const mailerSchema = z.discriminatedUnion("MAILER_PROVIDER", [
     MAILGUN_API_KEY: z.string(),
     MAILGUN_DOMAIN: z.string(),
   }),
+  z.object({
+    MAILER_PROVIDER: z.literal("noop"),
+  }),
 ]);
 
 const envSchema = z

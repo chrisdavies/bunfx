@@ -15,11 +15,13 @@ const mailerOpts: MailerOpts =
         apiKey: config.MAILGUN_API_KEY,
         domain: config.MAILGUN_DOMAIN,
       }
-    : {
-        provider: "local",
-        maxEmails: config.MAILER_LOCAL_MAX_EMAILS,
-        storagePath: config.MAILER_LOCAL_STORAGE_PATH,
-      };
+    : config.MAILER_PROVIDER === "local"
+      ? {
+          provider: "local",
+          maxEmails: config.MAILER_LOCAL_MAX_EMAILS,
+          storagePath: config.MAILER_LOCAL_STORAGE_PATH,
+        }
+      : { provider: "noop" };
 const mailer = makeMailer(mailerOpts);
 
 function hmacHash(data: string): string {
