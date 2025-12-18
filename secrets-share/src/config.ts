@@ -23,7 +23,8 @@ const envSchema = z
     APP_SECRET: z.string(),
     APP_URL: z.string().default("http://localhost:3000"),
     LOGIN_CODE_TTL_MINUTES: z.coerce.number().default(15),
-    SESSION_TTL_SECONDS: z.coerce.number().optional(),
+    // 100 years - browsers may cap this (e.g., Chrome caps at 400 days)
+    SESSION_TTL_SECONDS: z.coerce.number().default(100 * 365 * 24 * 60 * 60),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
     LOG_LEVEL: z
       .enum(["trace", "debug", "info", "warn", "error", "fatal"])
