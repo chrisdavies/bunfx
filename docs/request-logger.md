@@ -24,10 +24,21 @@ Bun.serve({
 });
 ```
 
-Output:
+Output (with recommended logger configuration):
 ```
 12:34:56.789 r-abc123 info  GET localhost:3000/api/users
 12:34:56.795 r-abc123 info  status 200 in 6.2ms
+```
+
+To get `requestId` on the prefix line as shown above, configure the logger with `prefixKeys`:
+
+```ts
+import { createLogger, makePrettyFormat } from "bunfx/logger";
+
+const format = makePrettyFormat({ prefixKeys: ["requestId"] });
+const log = createLogger({ format });
+
+const loggedHandler = withRequestLogging(handler, { log });
 ```
 
 ## Options
