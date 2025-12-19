@@ -5,7 +5,7 @@ Email abstraction with multiple providers: Mailgun for production, local storage
 ## Import
 
 ```ts
-import { makeMailer, makeDevmailHandler } from "bunfx/mailer";
+import { makeMailer, makeDevmailHandler } from "bunfx/server";
 ```
 
 ## Basic Usage
@@ -134,7 +134,7 @@ Variables use the format `%recipient.varName%` in subject and HTML body.
 A development UI for viewing locally stored emails.
 
 ```ts
-import { makeDevmailHandler } from "bunfx/mailer";
+import { makeDevmailHandler } from "bunfx/server";
 
 const devmail = makeDevmailHandler({
   prefix: "/devmail",           // Optional, default: "/devmail"
@@ -155,7 +155,7 @@ const devmail = makeDevmailHandler({
 ### Setup Example
 
 ```ts
-import { makeMailer, makeDevmailHandler } from "bunfx/mailer";
+import { makeMailer, makeDevmailHandler } from "bunfx/server";
 
 const isDev = process.env.NODE_ENV !== "production";
 

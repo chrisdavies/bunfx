@@ -147,7 +147,7 @@ The stored `source_code` enables rollback even if the original file is deleted.
 ## Programmatic API
 
 ```ts
-import { migrate } from "bunfx/migrations/migrate";
+import { migrate } from "bunfx/server";
 
 await migrate({
   command: "up",

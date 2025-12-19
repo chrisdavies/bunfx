@@ -5,7 +5,7 @@ LRU (Least Recently Used) cache with optional TTL (time-to-live) support and aut
 ## Import
 
 ```ts
-import { makeLRUCache } from "bunfx/cache/lru";
+import { makeLRUCache } from "bunfx";
 ```
 
 ## Basic Usage

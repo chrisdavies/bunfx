@@ -5,7 +5,7 @@ Structured logging with automatic sensitive key redaction, multiple output forma
 ## Import
 
 ```ts
-import { createLogger, withLogContext, jsonFormat, prettyFormat } from "bunfx/logger";
+import { createLogger, withLogContext, jsonFormat, prettyFormat } from "bunfx/server";
 ```
 
 ## Basic Usage
@@ -67,7 +67,7 @@ const log = createLogger({
 ### JSON Format (Production Default)
 
 ```ts
-import { jsonFormat } from "bunfx/logger";
+import { jsonFormat } from "bunfx/server";
 
 const log = createLogger({ format: jsonFormat });
 log.info("hello", { user: "alice" });
@@ -77,7 +77,7 @@ log.info("hello", { user: "alice" });
 ### Pretty Format (Development Default)
 
 ```ts
-import { prettyFormat, makePrettyFormat } from "bunfx/logger";
+import { prettyFormat, makePrettyFormat } from "bunfx/server";
 
 const log = createLogger({ format: prettyFormat });
 log.info("hello", { user: "alice" });
@@ -164,7 +164,7 @@ userLog.info("user action");
 Add context to all logs within an async scope:
 
 ```ts
-import { withLogContext } from "bunfx/logger";
+import { withLogContext } from "bunfx/server";
 
 async function handleRequest(req: Request) {
   return withLogContext({ traceId: crypto.randomUUID() }, async () => {

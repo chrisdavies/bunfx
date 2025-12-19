@@ -3,6 +3,7 @@
 export * from "../db";
 export * from "../gentypes";
 export * from "../logger";
+export * from "../mailer";
 export * from "../migrations/migrate";
 export * from "../request-logger";
 export * from "../rpc/server";

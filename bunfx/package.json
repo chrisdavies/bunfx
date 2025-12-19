@@ -1,7 +1,25 @@
 {
   "name": "bunfx",
-  "module": "index.ts",
+  "version": "0.1.0",
+  "description": "A lightweight web framework for Bun",
   "type": "module",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "bun": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./server": {
+      "types": "./server/index.ts",
+      "bun": "./server/index.ts",
+      "import": "./server/index.ts",
+      "default": "./server/index.ts"
+    }
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

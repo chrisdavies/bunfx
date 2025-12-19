@@ -5,7 +5,7 @@ Safe HTML templating with automatic escaping using tagged template literals.
 ## Import
 
 ```ts
-import { htm } from "bunfx/htm";
+import { htm } from "bunfx";
 ```
 
 ## Basic Usage

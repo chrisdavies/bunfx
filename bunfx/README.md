@@ -1,82 +1,120 @@
 # bunfx
 
-A collection of utilities for building web applications with Bun.
+A lightweight web framework for Bun.
+
+**[Getting Started](../docs/getting-started.md)** | **[API Reference](../docs/server.md)**
+
+## Entry Points
+
+bunfx provides two entry points:
+
+```ts
+// Browser-safe (can be bundled for client)
+import { makeRouter, makeRPCClient, htm, ClientError } from "bunfx";
+
+// Server-only (uses Bun builtins)
+import { makeSQLite, createLogger, makeSessionStore } from "bunfx/server";
+```
 
 ## Modules
 
-### Database (`bunfx/db`)
+### Database
 
 Utilities for working with Bun's native SQL.
 
-#### `makeSQLite(url)`
-
-Creates a SQLite connection with sensible defaults (WAL mode, foreign keys, etc.):
-
 ```ts
-import { makeSQLite } from "bunfx/db";
+import { makeSQLite, camelize, runSQLiteMaintenance } from "bunfx/server";
 
-export const sql = await makeSQLite("sqlite://./data.db");
-```
+// Create SQLite connection with sensible defaults
+const sql = await makeSQLite("sqlite://./data.db");
 
-#### `camelize(query)`
-
-Transforms query results from snake_case to camelCase. Works with snake_case, PascalCase, and kebab-case keys:
-
-```ts
-import { camelize } from "bunfx/db";
-
-// Define types matching your DB schema (snake_case)
-type UserRow = { user_name: string; created_at: string };
-
-// Query returns camelCase
-const users = await camelize(sql<UserRow>`SELECT * FROM users`);
+// Transform snake_case results to camelCase
+const users = await camelize(sql`SELECT user_name, created_at FROM users`);
 // users[0].userName, users[0].createdAt
 
-// Type is automatically transformed
-// users: { userName: string; createdAt: string }[]
-```
-
-For best results, generate your DB types with `bunfx/gentypes` which outputs snake_case types matching your schema.
-
-#### `runSQLiteMaintenance({ sql, vacuum? })`
-
-Runs SQLite maintenance tasks:
-
-```ts
-import { runSQLiteMaintenance } from "bunfx/db";
-
-// Run PRAGMA optimize
+// Run maintenance (PRAGMA optimize)
 await runSQLiteMaintenance({ sql });
-
-// Run PRAGMA optimize + VACUUM (slower, reclaims disk space)
-await runSQLiteMaintenance({ sql, vacuum: true });
 ```
 
-### Logger (`bunfx/logger`)
+See [Database docs](../docs/db.md) for details.
 
-Structured logging with automatic redaction. See [logger/README.md](./logger/README.md).
+### Logger
 
-### Migrations (`bunfx/migrations`)
-
-Database migrations for SQLite and PostgreSQL.
-
-### Type Generation (`bunfx/gentypes`)
-
-Generate TypeScript types from your database schema:
+Structured logging with automatic redaction.
 
 ```ts
-import { generateTypes } from "bunfx/gentypes";
+import { createLogger } from "bunfx/server";
 
-await generateTypes({
-  connectionString: "sqlite://./data.db",
-  config: { output: "./src/db-schema" },
-});
+const log = createLogger();
+log.info("User logged in", { userId: "123" });
 ```
 
-### RPC (`bunfx/rpc`)
+See [Logger docs](../docs/logger.md) for details.
+
+### Router
+
+Trie-based route matching with parameters and wildcards.
+
+```ts
+import { makeRouter } from "bunfx";
+
+const route = makeRouter({
+  "/": handleHome,
+  "/users/:id": handleUser,
+  "/files/*path": handleFiles,
+});
+
+const match = route("/users/123");
+// { value: handleUser, params: { id: "123" } }
+```
+
+See [Router docs](../docs/router.md) for details.
+
+### RPC
 
 Type-safe RPC with Zod schema validation.
 
-### Sessions (`bunfx/sessions`)
+```ts
+import { endpoint, ClientError } from "bunfx";
+import { makeRPCHandler } from "bunfx/server";
+import { z } from "zod";
 
-Cookie-based encrypted sessions. See [sessions/README.md](./sessions/README.md).
+const getUser = endpoint({
+  schema: z.object({ id: z.string() }),
+  async fn({ opts }) {
+    const user = await db.find(opts.id);
+    if (!user) throw ClientError.notFound("User not found");
+    return user;
+  },
+});
+```
+
+See [RPC docs](../docs/rpc.md) for details.
+
+### Sessions
+
+Cookie-based encrypted sessions.
+
+```ts
+import { makeSessionStore } from "bunfx/server";
+
+const sessions = makeSessionStore({ secret: process.env.SESSION_SECRET! });
+const session = await sessions.get(request);
+```
+
+See [Sessions docs](../docs/sessions.md) for details.
+
+## Full Documentation
+
+- [Getting Started](../docs/getting-started.md)
+- [Entry Points Reference](../docs/server.md)
+- [Router](../docs/router.md)
+- [RPC](../docs/rpc.md)
+- [Database](../docs/db.md)
+- [Sessions](../docs/sessions.md)
+- [Logger](../docs/logger.md)
+- [Migrations](../docs/migrations.md)
+- [Mailer](../docs/mailer.md)
+- [Cache](../docs/cache.md)
+- [HTM (HTML Templating)](../docs/htm.md)
+- [Type Generation](../docs/gentypes.md)

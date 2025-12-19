@@ -5,7 +5,7 @@ Database utilities for Bun SQL, including snake_case to camelCase transformation
 ## Import
 
 ```ts
-import { camelize, makeSQLite, runSQLiteMaintenance } from "bunfx/db";
+import { camelize, makeSQLite, runSQLiteMaintenance } from "bunfx/server";
 ```
 
 ## camelize

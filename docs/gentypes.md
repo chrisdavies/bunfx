@@ -5,7 +5,7 @@ Generate TypeScript types from PostgreSQL or SQLite database schemas.
 ## Import
 
 ```ts
-import { generateTypes, introspectDatabase, generateTypeFiles } from "bunfx/gentypes";
+import { generateTypes, introspectDatabase, generateTypeFiles } from "bunfx/server";
 ```
 
 ## CLI Usage
@@ -140,7 +140,7 @@ Table names are converted to PascalCase with pluralization removed:
 | `statuses` | `StatusRow` |
 | `boxes` | `BoxRow` |
 
-Column names are preserved as-is (typically snake_case). Use `camelize` from `bunfx/db` at runtime to convert to camelCase.
+Column names are preserved as-is (typically snake_case). Use `camelize` from `bunfx/server` at runtime to convert to camelCase.
 
 ## Insert Types
 
@@ -203,7 +203,7 @@ The generator validates overrides and throws errors for:
 ## Programmatic API
 
 ```ts
-import { introspectDatabase, generateTypeFiles, generateTypes } from "bunfx/gentypes";
+import { introspectDatabase, generateTypeFiles, generateTypes } from "bunfx/server";
 
 // Full generation (introspect + write files)
 await generateTypes({

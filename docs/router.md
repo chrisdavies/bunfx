@@ -5,13 +5,13 @@ Trie-based route matching with support for dynamic parameters and wildcards. Ord
 ## Import
 
 ```ts
-import { makeRouter, RedirectError } from "bunfx/router";
+import { makeRouter, RedirectError } from "bunfx";
 ```
 
 ## Basic Usage
 
 ```ts
-import { makeRouter } from "bunfx/router";
+import { makeRouter } from "bunfx";
 
 const route = makeRouter({
   "/": handleHome,
@@ -115,7 +115,7 @@ route("/other");        // → catch-all
 ## Server Integration
 
 ```ts
-import { makeRouter } from "bunfx/router";
+import { makeRouter } from "bunfx";
 
 type Handler = (req: Request, params: Record<string, string>) => Response;
 
@@ -144,7 +144,7 @@ Bun.serve({
 A special error class for triggering redirects in route loaders:
 
 ```ts
-import { RedirectError } from "bunfx/router";
+import { RedirectError } from "bunfx";
 
 async function load() {
   const user = await getUser();

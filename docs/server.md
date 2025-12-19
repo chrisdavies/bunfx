@@ -21,6 +21,11 @@ import {
   // Cache
   makeLRUCache,
 
+  // HTML Templating
+  htm,
+  HtmResult,
+  RawHtml,
+
   // Router
   makeRouter,
   RedirectError,
@@ -31,6 +36,10 @@ import {
   // RPC Endpoint (for type definitions)
   endpoint,
   ClientError,
+  JSONResponse,
+
+  // Utilities
+  transform,
 } from "bunfx";
 ```
 
@@ -56,6 +65,10 @@ import {
   jsonFormat,
   prettyFormat,
 
+  // Mailer
+  makeMailer,
+  makeDevmailHandler,
+
   // Migrations
   migrate,
 
@@ -78,10 +91,12 @@ import {
 | Module | Exports |
 |--------|---------|
 | cache | `makeLRUCache` |
+| htm | `htm`, `HtmResult`, `RawHtml` |
 | router | `makeRouter`, `RedirectError` |
 | rpc/client | `makeRPCClient` |
 | rpc/endpoint | `endpoint`, `JSONResponse` |
 | rpc/error | `ClientError` |
+| util | `transform` |
 
 ### Server-only (`bunfx/server`)
 
@@ -90,32 +105,11 @@ import {
 | db | `camelize`, `makeSQLite`, `runSQLiteMaintenance` |
 | gentypes | `generateTypes`, `introspectDatabase`, `generateTypeFiles` |
 | logger | `createLogger`, `withLogContext`, `jsonFormat`, `prettyFormat`, `makePrettyFormat` |
+| mailer | `makeMailer`, `makeDevmailHandler` |
 | migrations | `migrate` |
 | request-logger | `withRequestLogging`, `genRequestId` |
 | rpc/server | `makeRPCHandler` |
 | sessions | `makeSessionStore` |
-
-## Direct Module Imports
-
-You can also import from specific module paths:
-
-```ts
-// Browser-safe
-import { makeLRUCache } from "bunfx/cache/lru";
-import { makeRouter } from "bunfx/router";
-import { makeRPCClient } from "bunfx/rpc/client";
-import { endpoint } from "bunfx/rpc/endpoint";
-import { ClientError } from "bunfx/rpc/error";
-
-// Server-only
-import { camelize, makeSQLite } from "bunfx/db";
-import { generateTypes } from "bunfx/gentypes";
-import { createLogger } from "bunfx/logger";
-import { migrate } from "bunfx/migrations/migrate";
-import { withRequestLogging } from "bunfx/request-logger";
-import { makeRPCHandler } from "bunfx/rpc/server";
-import { makeSessionStore } from "bunfx/sessions/server";
-```
 
 ## Why Two Entry Points?
 

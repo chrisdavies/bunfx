@@ -5,7 +5,7 @@ Internal utility functions used by other bunfx modules.
 ## Import
 
 ```ts
-import { transform } from "bunfx/util/transform";
+import { transform } from "bunfx";
 ```
 
 ## transform
@@ -13,7 +13,7 @@ import { transform } from "bunfx/util/transform";
 Generic object transformation utility with structural sharing. Only creates new objects when changes are detected.
 
 ```ts
-import { transform } from "bunfx/util/transform";
+import { transform } from "bunfx";
 
 const result = transform(obj, {
   test: (key, value) => boolean,  // Should this key/value be transformed?

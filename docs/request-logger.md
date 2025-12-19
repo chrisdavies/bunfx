@@ -5,13 +5,13 @@ HTTP request logging middleware that wraps request handlers with automatic loggi
 ## Import
 
 ```ts
-import { withRequestLogging, genRequestId } from "bunfx/request-logger";
+import { withRequestLogging, genRequestId } from "bunfx/server";
 ```
 
 ## Basic Usage
 
 ```ts
-import { withRequestLogging } from "bunfx/request-logger";
+import { withRequestLogging } from "bunfx/server";
 
 const handler = async (req: Request): Promise<Response> => {
   return new Response("Hello");
@@ -33,7 +33,7 @@ Output (with recommended logger configuration):
 To get `requestId` on the prefix line as shown above, configure the logger with `prefixKeys`:
 
 ```ts
-import { createLogger, makePrettyFormat } from "bunfx/logger";
+import { createLogger, makePrettyFormat } from "bunfx/server";
 
 const format = makePrettyFormat({ prefixKeys: ["requestId"] });
 const log = createLogger({ format });
@@ -60,8 +60,7 @@ type RequestLoggerOptions = {
 ## Custom Logger
 
 ```ts
-import { createLogger } from "bunfx/logger";
-import { withRequestLogging } from "bunfx/request-logger";
+import { createLogger, withRequestLogging } from "bunfx/server";
 
 const log = createLogger({ minLevel: "debug" });
 
@@ -86,7 +85,7 @@ const loggedHandler = withRequestLogging(handler, {
 ## Custom Request ID
 
 ```ts
-import { withRequestLogging } from "bunfx/request-logger";
+import { withRequestLogging } from "bunfx/server";
 
 const loggedHandler = withRequestLogging(handler, {
   genRequestId: () => `req-${crypto.randomUUID()}`,
@@ -100,7 +99,7 @@ The built-in `genRequestId()` generates IDs like `r-abc123defxyz`:
 - 6 random bytes encoded as base64 (8 characters)
 
 ```ts
-import { genRequestId } from "bunfx/request-logger";
+import { genRequestId } from "bunfx/server";
 
 genRequestId(); // "r-K7mN2pQx"
 ```
@@ -110,8 +109,7 @@ genRequestId(); // "r-K7mN2pQx"
 Request IDs are automatically added to the async log context. Any logs within the request handler include the `requestId`:
 
 ```ts
-import { createLogger } from "bunfx/logger";
-import { withRequestLogging } from "bunfx/request-logger";
+import { createLogger, withRequestLogging } from "bunfx/server";
 
 const log = createLogger();
 

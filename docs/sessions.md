@@ -5,7 +5,7 @@ Cookie-based encrypted sessions using AES-GCM encryption. Session data is stored
 ## Import
 
 ```ts
-import { makeSessionStore } from "bunfx/sessions/server";
+import { makeSessionStore } from "bunfx/server";
 ```
 
 ## Basic Usage
@@ -77,7 +77,7 @@ type Session<T> = {
 Use with `JSONResponse` to set session cookies in RPC endpoints:
 
 ```ts
-import { endpoint, JSONResponse } from "bunfx/rpc";
+import { endpoint, JSONResponse } from "bunfx";
 
 export const login = endpoint({
   schema: z.object({ email: z.string(), code: z.string() }),

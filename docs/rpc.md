@@ -6,10 +6,11 @@ Type-safe RPC (Remote Procedure Call) system with Zod schema validation. Provide
 
 ```ts
 // Server
-import { endpoint, makeRPCHandler, ClientError } from "bunfx/rpc";
+import { makeRPCHandler } from "bunfx/server";
+import { endpoint, ClientError } from "bunfx";
 
 // Client (browser-safe)
-import { makeRPCClient } from "bunfx/rpc";
+import { makeRPCClient } from "bunfx";
 ```
 
 ## Defining Endpoints
@@ -18,7 +19,7 @@ Create endpoints with Zod schema validation:
 
 ```ts
 import { z } from "zod";
-import { endpoint } from "bunfx/rpc";
+import { endpoint } from "bunfx";
 
 export const getUser = endpoint({
   schema: z.object({ id: z.string() }),
@@ -62,7 +63,7 @@ export const getUser = endpoint({
 Use `JSONResponse` when you need to set response headers (e.g., for sessions):
 
 ```ts
-import { endpoint, JSONResponse } from "bunfx/rpc";
+import { endpoint, JSONResponse } from "bunfx";
 
 export const login = endpoint({
   schema: z.object({ code: z.string() }),
@@ -102,7 +103,7 @@ export type Endpoints = typeof endpoints;
 Create an RPC handler for your server:
 
 ```ts
-import { makeRPCHandler } from "bunfx/rpc";
+import { makeRPCHandler } from "bunfx/server";
 import { endpoints } from "./rpc";
 
 const rpcHandler = makeRPCHandler(endpoints, {
@@ -137,7 +138,7 @@ Content-Type: application/json
 Create a typed client proxy:
 
 ```ts
-import { makeRPCClient } from "bunfx/rpc";
+import { makeRPCClient } from "bunfx";
 import type { Endpoints } from "./rpc";
 
 const rpc = makeRPCClient<Endpoints>({
@@ -164,7 +165,7 @@ const user = await rpc.users.getUser({ id: "123" });
 Use `ClientError` for user-facing errors:
 
 ```ts
-import { ClientError } from "bunfx/rpc";
+import { ClientError } from "bunfx";
 
 export const deleteUser = endpoint({
   schema: z.object({ id: z.string() }),
@@ -220,7 +221,7 @@ Response:
 ### Client-Side Error Handling
 
 ```ts
-import { ClientError } from "bunfx/rpc";
+import { ClientError } from "bunfx";
 
 try {
   await rpc.users.deleteUser({ id: "123" });
