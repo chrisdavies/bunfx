@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { HtmResult, htm } from "./htm";
+import { HtmResult, htm } from "./";
 
 test("basic string interpolation with escaping", () => {
   const name = "<script>alert('xss')</script>";
