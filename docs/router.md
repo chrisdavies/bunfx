@@ -5,7 +5,7 @@ Trie-based route matching with support for dynamic parameters and wildcards. Ord
 ## Import
 
 ```ts
-import { makeRouter, RedirectError } from "bunfx";
+import { makeRouter, navigateTo, RedirectError } from "bunfx";
 ```
 
 ## Basic Usage
@@ -171,3 +171,25 @@ try {
 |----------|------|-------------|
 | `href` | `string` | The redirect destination |
 | `name` | `string` | Always `"RedirectError"` |
+
+## Programmatic Navigation
+
+Use `navigateTo` for programmatic client-side navigation:
+
+```ts
+import { navigateTo } from "bunfx";
+
+// Navigate to a new page
+navigateTo("/dashboard");
+
+// Navigate with query parameters
+navigateTo("/users/123?tab=settings");
+
+// Example: redirect after form submission
+async function handleSubmit(data: FormData) {
+  await saveData(data);
+  navigateTo("/success");
+}
+```
+
+This works the same as clicking a link—it pushes to the browser history and triggers the router to load the new route.

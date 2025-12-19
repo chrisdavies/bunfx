@@ -200,6 +200,14 @@ export function useRouteState() {
   return useContext(RouteContext);
 }
 
+/**
+ * Programmatically navigate to a URL. Works like clicking a link.
+ */
+export function navigateTo(href: string) {
+  history.pushState(null, "", href);
+  dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export function PreactRouter(props: Props) {
   const routeState = useRouteStateProvider(props);
   return (
