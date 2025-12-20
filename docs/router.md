@@ -193,3 +193,63 @@ async function handleSubmit(data: FormData) {
 ```
 
 This works the same as clicking a link—it pushes to the browser history and triggers the router to load the new route.
+
+## Page Keys and Remounting
+
+By default, the router remounts page components whenever the URL changes. This ensures component-local state (useState, useRef, useEffect with `[]` deps) resets when navigating to a different URL, even if it matches the same route pattern.
+
+For example, navigating from `/users/1` to `/users/2` will:
+1. Call the `load` function with the new params
+2. Remount the Page component (resetting all local state)
+
+### Customizing Remount Behavior
+
+Export a `key` function from your page module to control when remounting occurs:
+
+```ts
+// pages/users/show.ts
+
+// Default behavior: remount on any URL change
+// (No key function needed)
+
+export async function load({ params }: LoaderArgs) {
+  return { user: await getUser(params.id) };
+}
+
+export function Page({ state }: PageArgs<typeof load>) {
+  // Component remounts when URL changes
+}
+```
+
+To prevent reloading (keeping component state across navigations):
+
+```ts
+// pages/users/show.ts
+
+// Stable key - never reload
+export const key = () => "stable";
+
+// Or: only reload when a specific param changes
+export const key = ({ params }: LoaderArgs) => params.orgId;
+
+export async function load({ params }: LoaderArgs) {
+  // This is only called when the key changes
+  return { user: await getUser(params.id) };
+}
+
+export function Page({ state }: PageArgs<typeof load>) {
+  // When key matches, load() is skipped and component is not remounted
+  // The state signal is reused - your page must handle param changes reactively
+}
+```
+
+### When to Use Custom Keys
+
+Use the default behavior (remount on URL change) for most pages. It's the safest choice and prevents stale state bugs.
+
+Use a custom key function when:
+- You have expensive component state that should persist across navigations
+- You're implementing optimistic UI updates
+- The page handles its own data reactivity via signals
+
+**Warning:** When using a stable key, `load()` is skipped and the `state` signal is reused. Your page must handle URL/param changes reactively (e.g., via signals or useEffect watching params).

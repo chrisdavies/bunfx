@@ -21,6 +21,17 @@ type AnyLoaderFn = (args: LoaderArgs) => Promise<unknown>;
 export type RouteModule = {
   load?(props: LoaderArgs): Promise<unknown>;
   Page(props: PageArgs<AnyLoaderFn>): null | h.JSX.Element;
+  /**
+   * Optional function to compute a key for this route.
+   * When the key changes, the page component is remounted (all local state resets).
+   *
+   * Default: full URL (pathname + search) - remounts on any URL change.
+   *
+   * Return a stable value to prevent remounting:
+   * - `() => "stable"` - never remount
+   * - `({ params }) => params.orgId` - only remount when orgId changes
+   */
+  key?(props: LoaderArgs): string;
 };
 
 type Props = {
@@ -35,6 +46,7 @@ type LoadedPage = {
   url: URL;
   state: Signal<unknown>;
   Page: RouteModule["Page"];
+  key: string;
 };
 
 type ErrorPage = {
@@ -93,7 +105,20 @@ async function loadRoute(routeState: Signal<RouteState>, navigate: NavigateFn) {
       searchParams,
       url: loading.url,
     };
-    const data = await mod.load?.(loaderArgs);
+
+    // Compute key before calling load - if key matches current page, skip load
+    const defaultKey = loading.url.pathname + loading.url.search;
+    const pageKey = mod.key?.(loaderArgs) ?? defaultKey;
+    const currentPage = state.current;
+    const keyMatches =
+      currentPage?.type === "page" && currentPage.key === pageKey;
+
+    // If key matches, reuse existing state signal (skip load)
+    // Otherwise, call load and create new state
+    const pageState = keyMatches
+      ? currentPage.state
+      : signal(await mod.load?.(loaderArgs));
+
     if (loading !== routeState.value.loading) {
       return;
     }
@@ -106,7 +131,8 @@ async function loadRoute(routeState: Signal<RouteState>, navigate: NavigateFn) {
         searchParams,
         url: loading.url,
         Page: mod.Page,
-        state: signal(data),
+        state: pageState,
+        key: pageKey,
       },
     };
   } catch (err) {
