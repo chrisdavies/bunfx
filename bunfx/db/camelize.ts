@@ -45,9 +45,11 @@ type CamelCase<S extends string> = Uncapitalize<KebabToCamel<SnakeToCamel<S>>>;
 
 type Camelize<T> = T extends (infer U)[]
   ? Camelize<U>[]
-  : T extends object
-    ? { [K in keyof T as CamelCase<K & string>]: Camelize<T[K]> }
-    : T;
+  : T extends Date
+    ? Date
+    : T extends object
+      ? { [K in keyof T as CamelCase<K & string>]: Camelize<T[K]> }
+      : T;
 
 /**
  * Transform query results from snake_case to camelCase.

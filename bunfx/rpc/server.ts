@@ -53,6 +53,14 @@ export function makeRPCHandler(
     const def = endpointFn.rpcDefinition;
 
     try {
+      // Enforce JSON content type (defense in depth for CSRF)
+      const contentType = req.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        return new Response("Content-Type must be application/json", {
+          status: 415,
+        });
+      }
+
       // Parse the request body as JSON
       const body = await req.json();
       const opts = def.schema.parse(body);

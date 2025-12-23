@@ -157,6 +157,7 @@ function renderEmail(email: StoredEmail): string {
       id="email-iframe"
       srcdoc="${escapeHtml(emailHtml)}"
       style="width: 100%; height: calc(100% - 200px); border: none;"
+      sandbox="allow-popups allow-popups-to-escape-sandbox"
     ></iframe>
   `;
 }
