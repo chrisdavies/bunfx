@@ -253,3 +253,56 @@ Use a custom key function when:
 - The page handles its own data reactivity via signals
 
 **Warning:** When using a stable key, `load()` is skipped and the `state` signal is reused. Your page must handle URL/param changes reactively (e.g., via signals or useEffect watching params).
+
+## Error Route Handling
+
+The `PreactRouter` component accepts optional props to handle common loader errors automatically:
+
+```tsx
+import { PreactRouter } from "bunfx";
+
+<PreactRouter
+  routes={routes}
+  notFoundRoute="/not-found"
+  loginRoute="/login"
+>
+  {children}
+</PreactRouter>
+```
+
+### notFoundRoute
+
+When a loader throws a `ClientError` with status 404, the router renders the specified route's page **in place**, without changing the URL.
+
+```tsx
+<PreactRouter
+  routes={routes}
+  notFoundRoute="/not-found"  // Renders not-found page, keeps original URL
+>
+```
+
+This allows users to:
+- See the URL that failed (helpful for debugging)
+- Refresh to retry (useful if the resource was just created or a bug was fixed)
+
+### loginRoute
+
+When a loader throws a `ClientError` with status 401, the router redirects to the login route with a `returnTo` query parameter containing the original path.
+
+```tsx
+<PreactRouter
+  routes={routes}
+  loginRoute="/login"  // Redirects to /login?returnTo=%2Foriginal%2Fpath
+>
+```
+
+Your login page can then redirect back after successful authentication:
+
+```ts
+// pages/login.ts
+export async function load({ searchParams }: LoaderArgs) {
+  return { returnTo: searchParams.returnTo || "/" };
+}
+
+// After login succeeds:
+navigateTo(state.value.returnTo);
