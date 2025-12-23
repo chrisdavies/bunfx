@@ -511,6 +511,7 @@ function generateSchemaFileContent(
   tables: TableDef[],
   isPostgres: boolean,
   overrideCtx: OverrideContext,
+  outputDir: string,
 ): string {
   const lines: string[] = [];
 
@@ -535,7 +536,15 @@ function generateSchemaFileContent(
   for (const ns of usedNamespaces) {
     const imp = overrideCtx.imports.get(ns);
     if (imp) {
-      lines.push(`import type * as ${ns} from "${imp.from}";`);
+      // Compute relative path from output directory to import source
+      const absoluteFrom = path.resolve(imp.from);
+      const absoluteOutput = path.resolve(outputDir);
+      let relativePath = path.relative(absoluteOutput, absoluteFrom);
+      // Ensure path starts with ./ or ../
+      if (!relativePath.startsWith(".")) {
+        relativePath = `./${relativePath}`;
+      }
+      lines.push(`import type * as ${ns} from "${relativePath}";`);
     }
   }
 
@@ -573,6 +582,7 @@ export function generateTypeFiles(
         schema.tables,
         true,
         overrideCtx,
+        config.output,
       );
       files.push({
         filename: `${schema.name}.ts`,
@@ -582,7 +592,12 @@ export function generateTypeFiles(
   } else {
     // Generate single file for SQLite
     const allTables = dbSchema.schemas.flatMap((s) => s.tables);
-    const content = generateSchemaFileContent(allTables, false, overrideCtx);
+    const content = generateSchemaFileContent(
+      allTables,
+      false,
+      overrideCtx,
+      config.output,
+    );
     files.push({
       filename: "db.ts",
       content,

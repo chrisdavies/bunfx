@@ -53,10 +53,12 @@ export default {
 
 ```ts
 type OverrideMapping = {
-  from: string;                    // Import path for the custom types
+  from: string;                    // Path to the custom types module (relative to project root)
   mappings: Record<string, string>; // column path → type name
 };
 ```
+
+The `from` path is specified relative to the project root. The generator automatically computes the correct relative import path for each generated file based on the output directory.
 
 Column paths can be:
 - `table.column` (SQLite or default PostgreSQL schema)
@@ -185,9 +187,9 @@ export default {
 // src/types/auth.ts
 export type UserRole = "admin" | "user" | "guest";
 
-// Generated output includes:
-// import type * as Auth from "./src/types/auth";
-// import type * as Common from "./src/types/common";
+// Generated output (src/generated/db.ts or src/generated/public.ts):
+// import type * as Auth from "../types/auth";
+// import type * as Common from "../types/common";
 // ...
 // role: Auth.UserRole;
 // status: Common.Status;

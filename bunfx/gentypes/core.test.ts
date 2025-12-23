@@ -363,7 +363,7 @@ describe("generateTypeFiles", () => {
       const files = generateTypeFiles(schema, config);
       const content = getContent(files);
 
-      expect(content).toContain('import type * as Types from "./overrides";');
+      expect(content).toContain('import type * as Types from "../overrides";');
       expect(content).toContain("role: Types.UserRole;");
     });
 
@@ -504,9 +504,9 @@ describe("generateTypeFiles", () => {
       const files = generateTypeFiles(schema, config);
       const content = getContent(files);
 
-      expect(content).toContain('import type * as Auth from "./auth-types";');
+      expect(content).toContain('import type * as Auth from "../auth-types";');
       expect(content).toContain(
-        'import type * as Common from "./common-types";',
+        'import type * as Common from "../common-types";',
       );
       expect(content).toContain("role: Auth.UserRole;");
       expect(content).toContain("status: Common.Status;");
