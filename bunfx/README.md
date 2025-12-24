@@ -104,6 +104,30 @@ const session = await sessions.get(request);
 
 See [Sessions docs](../docs/sessions.md) for details.
 
+### Rich Text Editor
+
+A modular rich text editor built with Web Components and optional Preact integration.
+
+```tsx
+import { useState } from "preact/hooks";
+import { RichTextEditor } from "bunfx/rich-text/preact";
+
+function MyEditor() {
+  const [content, setContent] = useState("");
+
+  return (
+    <RichTextEditor
+      value={content}
+      onChange={setContent}
+      uploader={myUploader}      // Optional: enables image upload
+      filepicker={myFilepicker}  // Optional: enables file picker UI
+    />
+  );
+}
+```
+
+See [Rich Text docs](../docs/rich-text.md) for details.
+
 ## Full Documentation
 
 - [Getting Started](../docs/getting-started.md)
@@ -118,3 +142,4 @@ See [Sessions docs](../docs/sessions.md) for details.
 - [Cache](../docs/cache.md)
 - [HTM (HTML Templating)](../docs/htm.md)
 - [Type Generation](../docs/gentypes.md)
+- [Rich Text Editor](../docs/rich-text.md)
