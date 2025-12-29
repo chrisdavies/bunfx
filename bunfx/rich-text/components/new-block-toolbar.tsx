@@ -3,18 +3,23 @@
  * allowing the user to insert blocks (media, hrs, etc)
  */
 
-import { useSignal } from '@preact/signals';
-import { getStartEl, isEmpty, on } from '../editor/utils';
-import { type PreactEditorState } from './use-editor-signal';
-import { Button } from '../ui';
-import { IcoImage, IcoPlus, IcoRectangleGroup, IcoRocketLaunch } from '../icons';
-import { applyEdit } from '../editor';
-import { useEffect } from 'preact/hooks';
+import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+import { applyEdit } from "../editor";
+import { getStartEl, isEmpty, on } from "../editor/utils";
+import {
+  IcoImage,
+  IcoPlus,
+  IcoRectangleGroup,
+  IcoRocketLaunch,
+} from "../icons";
+import { Button } from "../ui";
+import type { PreactEditorState } from "./use-editor-signal";
 
 function pickFile(accept?: string): Promise<File | undefined> {
   return new Promise((resolve) => {
-    const input = document.createElement('input');
-    input.type = 'file';
+    const input = document.createElement("input");
+    input.type = "file";
     if (accept) {
       input.accept = accept;
     }
@@ -25,10 +30,11 @@ function pickFile(accept?: string): Promise<File | undefined> {
     input.click();
   });
 }
-import { createEmptyHTML as createEmptyCta } from './rich-cta';
-import { createEmptyHTML as createEmptyBlock } from './rich-block';
-import { type ComponentChildren } from 'preact';
-import { createPortal } from 'preact/compat';
+
+import type { ComponentChildren } from "preact";
+import { createPortal } from "preact/compat";
+import { createEmptyHTML as createEmptyBlock } from "./rich-block";
+import { createEmptyHTML as createEmptyCta } from "./rich-cta";
 
 type BlockButtonProps = {
   icon: ComponentChildren;
@@ -62,7 +68,8 @@ function findEditableContext(
   editor: HTMLElement,
   node: Node | null,
 ): { ancestor: Node; container: Element } | undefined {
-  const container = (node as Element)?.closest?.('article[contenteditable]') || editor;
+  const container =
+    (node as Element)?.closest?.("article[contenteditable]") || editor;
   let ancestor: Node | null = node;
   while (ancestor && ancestor.parentElement !== container) {
     ancestor = ancestor.parentElement;
@@ -72,7 +79,10 @@ function findEditableContext(
   }
 }
 
-function getToolbarPosition(editor?: HTMLElement, rng?: Range): ToolbarState | undefined {
+function getToolbarPosition(
+  editor?: HTMLElement,
+  rng?: Range,
+): ToolbarState | undefined {
   if (!editor || !rng || !rng.collapsed) {
     return;
   }
@@ -87,7 +97,8 @@ function getToolbarPosition(editor?: HTMLElement, rng?: Range): ToolbarState | u
   }
   const bounds = ancestor.getBoundingClientRect();
   const isInsideRichBlock =
-    container instanceof HTMLElement && container.tagName.toLowerCase() === 'rich-block';
+    container instanceof HTMLElement &&
+    container.tagName.toLowerCase() === "rich-block";
   if (isInsideRichBlock) {
     const containerBounds = container.getBoundingClientRect();
     return {
@@ -113,7 +124,7 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
   const pos = getToolbarPosition(state.editor, state.range.value);
   useEffect(() => {
     if (state.editor) {
-      return on(state.editor, 'focusin', () => {
+      return on(state.editor, "focusin", () => {
         expanded.value = false;
       });
     }
@@ -123,14 +134,15 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
   }
 
   const hasBlockCapability = state.capabilities.value.some((x) =>
-    x.capabilities.includes('block*'),
+    x.capabilities.includes("block*"),
   );
 
   if (!hasBlockCapability) {
     return null;
   }
 
-  const isInsideRichBlock = pos.container.tagName.toLowerCase() === 'rich-block';
+  const isInsideRichBlock =
+    pos.container.tagName.toLowerCase() === "rich-block";
 
   const toolbar = (
     <div
@@ -138,7 +150,7 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
       style={{ top: pos.top, left: pos.left }}
     >
       <Button
-        class={`ring inline-flex items-center justify-center rounded-full size-10 bg-white text-gray-700 hover:opacity-100 hover:scale-110 transition-all ${expanded.value ? 'rotate-45' : 'opacity-75'}`}
+        class={`ring inline-flex items-center justify-center rounded-full size-10 bg-white text-gray-700 hover:opacity-100 hover:scale-110 transition-all ${expanded.value ? "rotate-45" : "opacity-75"}`}
         title="Insert..."
         onClick={() => {
           expanded.value = !expanded.value;
@@ -152,7 +164,7 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
             icon={<IcoImage class="size-4 stroke-2" />}
             text="Image"
             onClick={async () => {
-              const file = await pickFile('image/*');
+              const file = await pickFile("image/*");
               if (!file || !state.editor) {
                 return;
               }
@@ -160,10 +172,10 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
               dataTransfer.items.add(file);
               applyEdit(
                 state.editor,
-                new InputEvent('beforeinput', {
+                new InputEvent("beforeinput", {
                   bubbles: true,
                   cancelable: true,
-                  inputType: 'insertFromPaste',
+                  inputType: "insertFromPaste",
                   dataTransfer,
                   data: null,
                 }),
@@ -174,7 +186,7 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
             icon={<span class="text-xs">- - -</span>}
             text="Divider"
             onClick={() => {
-              state.editor && applyEdit(state.editor, 'insertHorizontalRule');
+              state.editor && applyEdit(state.editor, "insertHorizontalRule");
             }}
           />
           <BlockButton
@@ -186,13 +198,13 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
               }
               const html = createEmptyCta();
               const dataTransfer = new DataTransfer();
-              dataTransfer.setData('text/html', html);
+              dataTransfer.setData("text/html", html);
               applyEdit(
                 state.editor,
-                new InputEvent('beforeinput', {
+                new InputEvent("beforeinput", {
                   bubbles: true,
                   cancelable: true,
-                  inputType: 'insertFromPaste',
+                  inputType: "insertFromPaste",
                   dataTransfer,
                   data: html,
                 }),
@@ -208,13 +220,13 @@ export function NewBlockToolbar({ state }: { state: PreactEditorState }) {
               }
               const html = createEmptyBlock();
               const dataTransfer = new DataTransfer();
-              dataTransfer.setData('text/html', html);
+              dataTransfer.setData("text/html", html);
               applyEdit(
                 state.editor,
-                new InputEvent('beforeinput', {
+                new InputEvent("beforeinput", {
                   bubbles: true,
                   cancelable: true,
-                  inputType: 'insertFromPaste',
+                  inputType: "insertFromPaste",
                   dataTransfer,
                   data: html,
                 }),

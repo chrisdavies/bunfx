@@ -11,12 +11,12 @@
  * - `range`: Signal containing the current selection range
  * - `capabilities`: Computed signal with available editor extensions for current context
  */
-import { signal, computed } from '@preact/signals';
-import type { SignalLike } from 'preact';
-import { useMemo } from 'preact/hooks';
-import { SelectionChangeEvent } from '../editor/selection';
-import type { EditorExtension } from '../editor/extensions';
-import { selectionCapabilities } from '../editor/extensions';
+import { computed, signal } from "@preact/signals";
+import type { SignalLike } from "preact";
+import { useMemo } from "preact/hooks";
+import type { EditorExtension } from "../editor/extensions";
+import { selectionCapabilities } from "../editor/extensions";
+import type { SelectionChangeEvent } from "../editor/selection";
 
 export type PreactEditorState = {
   id: string;
@@ -34,7 +34,7 @@ export function useEditorState(): PreactEditorStateManager {
   return useMemo(() => {
     const rangeSignal = signal<Range | undefined>();
     const state: PreactEditorStateManager = {
-      id: 's' + globalThis.crypto.randomUUID(),
+      id: `s${globalThis.crypto.randomUUID()}`,
       range: rangeSignal,
       capabilities: computed(() => {
         const range = rangeSignal.value;

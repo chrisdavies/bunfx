@@ -4,11 +4,11 @@
  */
 export class EditorUI extends HTMLElement {
   connectedCallback() {
-    this.contentEditable = 'false';
+    this.contentEditable = "false";
   }
 }
 
-customElements.define('editor-ui', EditorUI);
+customElements.define("editor-ui", EditorUI);
 
 /**
  * A custom element that exists to represent a pending editor
@@ -18,12 +18,12 @@ customElements.define('editor-ui', EditorUI);
  */
 export class EditorPlaceholder extends HTMLElement {
   connectedCallback() {
-    this.contentEditable = 'false';
+    this.contentEditable = "false";
   }
 
   serialize() {
-    return '';
+    return "";
   }
 }
 
-customElements.define('editor-placeholder', EditorPlaceholder);
+customElements.define("editor-placeholder", EditorPlaceholder);

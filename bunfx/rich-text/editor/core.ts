@@ -3,18 +3,18 @@
  * edit operations such as text input, and line breaks.
  */
 
-import { getExtensions, type EditorExtension } from './extensions';
-import { restoreSelectionFromState } from './selection';
+import { type EditorExtension, getExtensions } from "./extensions";
+import { restoreSelectionFromState } from "./selection";
+import { serialize } from "./serialization";
 import {
+  deleteBlock,
   ensureNonEmpty,
   getEndEl,
   getRange,
   getStartEl,
   merge,
   toggleBlockType,
-  deleteBlock,
-} from './utils';
-import { serialize } from './serialization';
+} from "./utils";
 
 export class CustomInputEvent extends InputEvent {
   #inputType: string;
@@ -24,8 +24,8 @@ export class CustomInputEvent extends InputEvent {
   }
 
   constructor(eventInitDict?: InputEventInit) {
-    super('beforeinput', eventInitDict);
-    this.#inputType = eventInitDict?.inputType || '';
+    super("beforeinput", eventInitDict);
+    this.#inputType = eventInitDict?.inputType || "";
   }
 }
 
@@ -33,11 +33,11 @@ export class CustomInputEvent extends InputEvent {
  * Display the selection even when the editor loses focus.
  */
 export function registerBlurHighlight(editor: HTMLElement) {
-  const highlightId = 'editor-selection';
+  const highlightId = "editor-selection";
   const state: { highlight?: Highlight; range?: Range } = {};
   (editor as any).highlightState = state;
 
-  editor.addEventListener('blur', () => {
+  editor.addEventListener("blur", () => {
     const rng = getRange(editor);
     if (!rng) {
       return;
@@ -50,7 +50,7 @@ export function registerBlurHighlight(editor: HTMLElement) {
     }
   });
 
-  editor.addEventListener('focus', () => {
+  editor.addEventListener("focus", () => {
     if (CSS.highlights && state.highlight && state.range) {
       state.highlight.delete(state.range);
       state.highlight = undefined;
@@ -60,12 +60,23 @@ export function registerBlurHighlight(editor: HTMLElement) {
 }
 
 export function applyEdit(editor: HTMLElement, e: InputEvent): void;
-export function applyEdit(editor: HTMLElement, inputType: string, data?: string): void;
-export function applyEdit(editor: HTMLElement, inputType: string | InputEvent, data = '') {
+export function applyEdit(
+  editor: HTMLElement,
+  inputType: string,
+  data?: string,
+): void;
+export function applyEdit(
+  editor: HTMLElement,
+  inputType: string | InputEvent,
+  data = "",
+) {
   if (!editor.contains(document.activeElement)) {
     restoreSelectionFromState(editor);
   }
-  const event = inputType instanceof Event ? inputType : new CustomInputEvent({ inputType, data });
+  const event =
+    inputType instanceof Event
+      ? inputType
+      : new CustomInputEvent({ inputType, data });
   editor.dispatchEvent(event);
 }
 
@@ -74,21 +85,23 @@ export function deleteForInput(editor: HTMLElement) {
   if (rng?.collapsed) {
     return;
   }
-  applyEdit(editor, 'deleteContentBackward');
+  applyEdit(editor, "deleteContentBackward");
 }
 
-export function getContentEditableFalse(node: Node | null): HTMLElement | undefined {
-  const el = (node instanceof HTMLElement ? node : node?.parentElement)?.closest<HTMLElement>(
-    '[contenteditable]',
-  );
-  return el?.contentEditable === 'false' ? el : undefined;
+export function getContentEditableFalse(
+  node: Node | null,
+): HTMLElement | undefined {
+  const el = (
+    node instanceof HTMLElement ? node : node?.parentElement
+  )?.closest<HTMLElement>("[contenteditable]");
+  return el?.contentEditable === "false" ? el : undefined;
 }
 
 function isUneditableBlock(editor: HTMLElement, el: Element | null) {
   if (!(el instanceof HTMLElement)) {
     return false;
   }
-  return el.contentEditable === 'false' && editor.contains(el) && editor !== el;
+  return el.contentEditable === "false" && editor.contains(el) && editor !== el;
 }
 
 function spansContentEditableFalseBlocks(rng: Range): HTMLElement | undefined {
@@ -123,8 +136,8 @@ export function insertLineBreak(editor: HTMLElement) {
   if (!rng) {
     return;
   }
-  const br = document.createElement('br');
-  const txt = document.createTextNode('');
+  const br = document.createElement("br");
+  const txt = document.createTextNode("");
   rng.insertNode(br);
   br.parentElement?.insertBefore(txt, br.nextSibling);
   rng.selectNodeContents(txt);
@@ -143,11 +156,13 @@ export function handleParagraphAsLineBreak(
   editor: HTMLElement,
   selector: string,
 ): boolean {
-  if (e.inputType !== 'insertParagraph') {
+  if (e.inputType !== "insertParagraph") {
     return false;
   }
   const target = e.target as Node;
-  const element = (target instanceof Element ? target : target.parentElement)?.closest(selector);
+  const element = (
+    target instanceof Element ? target : target.parentElement
+  )?.closest(selector);
   if (!element) {
     return false;
   }
@@ -156,11 +171,11 @@ export function handleParagraphAsLineBreak(
 }
 
 export const extLinebreak: EditorExtension = {
-  name: 'linebreak',
+  name: "linebreak",
   isInline: true,
-  capabilities: ['inline*'],
+  capabilities: ["inline*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertLineBreak') {
+    if (e.inputType === "insertLineBreak") {
       insertLineBreak(editor);
       return true;
     }
@@ -168,32 +183,35 @@ export const extLinebreak: EditorExtension = {
 };
 
 export const extEdit: EditorExtension = {
-  name: 'edit',
+  name: "edit",
   isInline: true,
-  capabilities: ['inline*', 'edit*'],
+  capabilities: ["inline*", "edit*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
+    if (
+      e.inputType === "insertText" ||
+      e.inputType === "insertReplacementText"
+    ) {
       insertText(editor, e);
       return true;
     }
-    if (e.inputType === 'insertFromDrop' || e.inputType === 'insertFromPaste') {
-      if (e.dataTransfer?.types.includes('text/html')) {
+    if (e.inputType === "insertFromDrop" || e.inputType === "insertFromPaste") {
+      if (e.dataTransfer?.types.includes("text/html")) {
         insertHTML(editor, e);
         return true;
       }
-      if (e.dataTransfer?.types.includes('text/plain')) {
+      if (e.dataTransfer?.types.includes("text/plain")) {
         insertText(editor, e);
         return true;
       }
       return;
     }
-    if (e.inputType.startsWith('deleteContent')) {
+    if (e.inputType.startsWith("deleteContent")) {
       const sel = window.getSelection();
       if (sel?.isCollapsed) {
         sel?.modify(
-          'extend',
-          e.inputType.endsWith('Backward') ? 'backward' : 'forward',
-          'character',
+          "extend",
+          e.inputType.endsWith("Backward") ? "backward" : "forward",
+          "character",
         );
         const rng = getRange(editor);
         if (!rng) {
@@ -213,15 +231,15 @@ export const extEdit: EditorExtension = {
 };
 
 export const extBlocks: EditorExtension = {
-  name: 'blocks',
-  tagName: 'p',
-  capabilities: ['blocks*'],
+  name: "blocks",
+  tagName: "p",
+  capabilities: ["blocks*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertParagraph') {
+    if (e.inputType === "insertParagraph") {
       insertParagraph(editor);
       return true;
     }
-    if (e.inputType === 'formatBlock' && e.data) {
+    if (e.inputType === "formatBlock" && e.data) {
       toggleBlockType(editor, e.data);
       return true;
     }
@@ -231,22 +249,22 @@ export const extBlocks: EditorExtension = {
       if (isUneditableBlock(editor, document.activeElement)) {
         e.preventDefault();
         const block = document.activeElement as HTMLElement;
-        e.clipboardData?.setData('text/html', serialize(block));
-        e.clipboardData?.setData('text/plain', block.textContent || '');
-        if (e.type === 'cut') {
+        e.clipboardData?.setData("text/html", serialize(block));
+        e.clipboardData?.setData("text/plain", block.textContent || "");
+        if (e.type === "cut") {
           deleteBlock(block);
         }
       }
     };
 
-    editor.addEventListener('copy', handleCopyCut);
-    editor.addEventListener('cut', handleCopyCut);
+    editor.addEventListener("copy", handleCopyCut);
+    editor.addEventListener("cut", handleCopyCut);
   },
 };
 
 function insertHTML(editor: HTMLElement, e: InputEvent) {
   deleteForInput(editor);
-  const html = e.data || e.dataTransfer?.getData('text/html');
+  const html = e.data || e.dataTransfer?.getData("text/html");
   if (!html) {
     return;
   }
@@ -254,7 +272,7 @@ function insertHTML(editor: HTMLElement, e: InputEvent) {
   if (!rng) {
     return;
   }
-  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const doc = new DOMParser().parseFromString(html, "text/html");
   const frag = document.createDocumentFragment();
   frag.append(...doc.body.childNodes);
   merge(rng, frag);
@@ -262,7 +280,7 @@ function insertHTML(editor: HTMLElement, e: InputEvent) {
 
 function insertText(editor: HTMLElement, e: InputEvent) {
   deleteForInput(editor);
-  const text = e.data || e.dataTransfer?.getData('text/plain');
+  const text = e.data || e.dataTransfer?.getData("text/plain");
   if (!text) {
     return;
   }
@@ -301,7 +319,11 @@ function getIsInline(exts: EditorExtension[], node: Node) {
   );
 }
 
-function closestBlock(exts: EditorExtension[], common: Node, node: Node | null) {
+function closestBlock(
+  exts: EditorExtension[],
+  common: Node,
+  node: Node | null,
+) {
   const isInline = true;
   while (node) {
     if (isInline && !getIsInline(exts, node)) {
@@ -330,7 +352,7 @@ function insertParagraph(editor: HTMLElement) {
   const content = rng.extractContents();
   let first = content.firstChild;
   if (first instanceof Element && !getIsInline(exts, first)) {
-    const p = document.createElement('p');
+    const p = document.createElement("p");
     p.append(...first.childNodes);
     first = p;
     ensureNonEmpty(p);
@@ -343,7 +365,11 @@ function insertParagraph(editor: HTMLElement) {
   }
 }
 
-function findAncestor(exts: EditorExtension[], common: Node, node: Node | null) {
+function findAncestor(
+  exts: EditorExtension[],
+  common: Node,
+  node: Node | null,
+) {
   let isInline = true;
   while (node) {
     if (isInline && !getIsInline(exts, node)) {

@@ -2,10 +2,10 @@
  * A basic, general undo / redo mechanism.
  */
 
-import type { EditorExtension } from './extensions';
-import { type RichText } from '.';
-import type { SerializedSelection } from './selection';
-import { restoreSelection, serializeSelection } from './selection';
+import type { RichText } from ".";
+import type { EditorExtension } from "./extensions";
+import type { SerializedSelection } from "./selection";
+import { restoreSelection, serializeSelection } from "./selection";
 
 type UndoRedoSnapshot = {
   content: string;
@@ -17,13 +17,13 @@ type UndoRedoEditor = RichText & {
 };
 
 export const extUndoRedo: EditorExtension = {
-  name: 'undoredo',
+  name: "undoredo",
   capabilities: [],
   attach(editor) {
     const root = editor as UndoRedoEditor;
     const undoredo = makeUndoRedo<UndoRedoSnapshot>(
       {
-        content: root.value || '',
+        content: root.value || "",
       },
       (state) => {
         root.value = state.content;
@@ -31,7 +31,7 @@ export const extUndoRedo: EditorExtension = {
       },
     );
     root.undoredo = undoredo;
-    root.addEventListener('input', () => {
+    root.addEventListener("input", () => {
       undoredo.setState({
         content: root.value,
         selection: serializeSelection(root),
@@ -40,10 +40,10 @@ export const extUndoRedo: EditorExtension = {
   },
   onbeforeinput(e, editor) {
     const root = editor as UndoRedoEditor;
-    if (e.inputType === 'historyUndo') {
+    if (e.inputType === "historyUndo") {
       root.undoredo?.undo();
       return true;
-    } else if (e.inputType === 'historyRedo') {
+    } else if (e.inputType === "historyRedo") {
       root.undoredo?.redo();
       return true;
     }
@@ -69,7 +69,10 @@ function makeUndoRedo<T>(state: T, setState: (state: T) => void) {
 
   const performUndoRedo = (direction: number) => () => {
     undoredo.pendingSnapshot?.();
-    undoredo.index = Math.min(undoredo.hist.length, Math.max(0, undoredo.index + direction));
+    undoredo.index = Math.min(
+      undoredo.hist.length,
+      Math.max(0, undoredo.index + direction),
+    );
     const newState = undoredo.hist[undoredo.index];
     if (!newState) {
       return;

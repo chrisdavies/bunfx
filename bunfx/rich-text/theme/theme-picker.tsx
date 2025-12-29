@@ -1,7 +1,7 @@
-import { IcoCheck } from '../icons';
-import type { PresetName } from './presets';
-import { presetLabels, presets } from './presets';
-import type { Theme } from './index';
+import { IcoCheck } from "../icons";
+import type { Theme } from "./index";
+import type { PresetName } from "./presets";
+import { presetLabels, presets } from "./presets";
 
 type ThemeSwatchProps = {
   theme: Theme;
@@ -11,18 +11,18 @@ type ThemeSwatchProps = {
 };
 
 function ThemeSwatch({ theme, label, selected, onClick }: ThemeSwatchProps) {
-  const coverBg = theme.root['theme-cover-bg'] || '#3b82f6';
-  const coverFg = theme.root['theme-cover-fg'] || '#ffffff';
-  const ctaBg = theme.root['theme-cta-bg'] || '#3b82f6';
-  const blockBg = theme.root['theme-rich-block-bg'] || '#f3f4f6';
+  const coverBg = theme.root["theme-cover-bg"] || "#3b82f6";
+  const coverFg = theme.root["theme-cover-fg"] || "#ffffff";
+  const ctaBg = theme.root["theme-cta-bg"] || "#3b82f6";
+  const blockBg = theme.root["theme-rich-block-bg"] || "#f3f4f6";
 
   return (
     <button
       type="button"
       class={`group relative flex flex-col rounded-xl overflow-hidden transition-all ${
         selected
-          ? 'ring-2 ring-indigo-500 ring-offset-2'
-          : 'ring-1 ring-gray-200 hover:ring-gray-300 hover:shadow-md'
+          ? "ring-2 ring-indigo-500 ring-offset-2"
+          : "ring-1 ring-gray-200 hover:ring-gray-300 hover:shadow-md"
       }`}
       onClick={onClick}
     >
@@ -46,14 +46,17 @@ function ThemeSwatch({ theme, label, selected, onClick }: ThemeSwatchProps) {
               <div class="h-1 w-3 rounded-full bg-gray-400 opacity-50" />
             </div>
           </div>
-          <div class="h-3 w-12 rounded-sm mx-auto" style={{ backgroundColor: ctaBg }} />
+          <div
+            class="h-3 w-12 rounded-sm mx-auto"
+            style={{ backgroundColor: ctaBg }}
+          />
         </div>
       </div>
       <div
         class={`px-3 py-2 text-sm font-medium text-center border-t ${
           selected
-            ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
-            : 'bg-gray-50 text-gray-700 border-gray-100'
+            ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+            : "bg-gray-50 text-gray-700 border-gray-100"
         }`}
       >
         {label}
@@ -77,7 +80,9 @@ export function ThemePicker({ currentPreset, onSelect }: ThemePickerProps) {
     <div class="flex flex-col gap-4">
       <div>
         <h3 class="text-sm font-semibold text-gray-900">Theme</h3>
-        <p class="text-xs text-gray-500 mt-0.5">Choose a color scheme for your ebook</p>
+        <p class="text-xs text-gray-500 mt-0.5">
+          Choose a color scheme for your ebook
+        </p>
       </div>
       <div class="flex flex-col gap-3">
         {(Object.keys(presets) as PresetName[]).map((name) => {

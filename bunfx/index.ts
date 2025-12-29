@@ -6,4 +6,5 @@ export * from "./router";
 export * from "./rpc/client";
 export * from "./rpc/endpoint";
 export * from "./rpc/error";
+export * from "./sanitize";
 export * from "./util/transform";

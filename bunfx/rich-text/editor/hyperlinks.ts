@@ -2,7 +2,7 @@
  * Logic for handling anchor tags.
  */
 
-import { type EditorExtension } from './extensions';
+import type { EditorExtension } from "./extensions";
 import {
   getRange,
   getStartEl,
@@ -12,7 +12,7 @@ import {
   split,
   unwrap,
   wrapInline,
-} from './utils';
+} from "./utils";
 
 /**
  * If the href is empty "", this is a *remove* link.
@@ -24,7 +24,7 @@ function insertLink(editor: HTMLElement, href: string) {
   if (!rng) {
     return;
   }
-  const existing = getStartEl(rng)?.closest('a');
+  const existing = getStartEl(rng)?.closest("a");
   if (!href) {
     if (rng.collapsed && !existing) {
       return;
@@ -34,15 +34,15 @@ function insertLink(editor: HTMLElement, href: string) {
     }
     const content = rng.extractContents();
     existing?.remove();
-    unwrap(content, 'a');
+    unwrap(content, "a");
     rng.insertNode(content);
   } else if (rng.collapsed) {
-    existing?.setAttribute('href', href);
+    existing?.setAttribute("href", href);
   } else {
-    const content = split(rng, 'a');
-    const a = document.createElement('a');
+    const content = split(rng, "a");
+    const a = document.createElement("a");
     a.href = href;
-    unwrap(content, 'a');
+    unwrap(content, "a");
     wrapInline(content, a);
     mergeSiblings(content, `a[href=${CSS.escape(href)}]`);
     merge(rng, content);
@@ -51,12 +51,12 @@ function insertLink(editor: HTMLElement, href: string) {
 }
 
 export const extHyperlinks: EditorExtension = {
-  name: 'hyperlinks',
-  tagName: 'a',
-  capabilities: ['inline*'],
+  name: "hyperlinks",
+  tagName: "a",
+  capabilities: ["inline*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertLink') {
-      insertLink(editor, e.data || '');
+    if (e.inputType === "insertLink") {
+      insertLink(editor, e.data || "");
       return true;
     }
   },

@@ -2,8 +2,8 @@
  * Format-related logic (bold, italic, etc)
  */
 
-import type { SelectionChangeEvent } from './selection';
-import { getStartEl, getEndEl } from './utils';
+import type { SelectionChangeEvent } from "./selection";
+import { getEndEl, getStartEl } from "./utils";
 
 export type CapableElement = HTMLElement & {
   capabilities?: EditorExtension[];
@@ -17,9 +17,18 @@ export type EditorExtension = {
   isChildless?: boolean;
   capabilities: string[];
   attach?(editor: HTMLElement): void;
-  onkeydown?(e: KeyboardEvent, editor: HTMLElement): boolean | undefined | void;
-  onbeforeinput?(e: InputEvent, editor: HTMLElement): boolean | undefined | void;
-  onselectionchange?(e: SelectionChangeEvent, editor: HTMLElement): boolean | undefined | void;
+  onkeydown?(
+    e: KeyboardEvent,
+    editor: HTMLElement,
+  ): boolean | undefined | undefined;
+  onbeforeinput?(
+    e: InputEvent,
+    editor: HTMLElement,
+  ): boolean | undefined | undefined;
+  onselectionchange?(
+    e: SelectionChangeEvent,
+    editor: HTMLElement,
+  ): boolean | undefined | undefined;
 };
 
 type EditorWithExtensions = HTMLElement & {
@@ -39,7 +48,15 @@ function* walkAncestors(from: Node, to: Node) {
   }
 }
 
-function* walkNodes({ ancestor, start, end }: { ancestor: Node; start: Node; end: Node }) {
+function* walkNodes({
+  ancestor,
+  start,
+  end,
+}: {
+  ancestor: Node;
+  start: Node;
+  end: Node;
+}) {
   const walker = document.createTreeWalker(ancestor, NodeFilter.SHOW_ELEMENT);
   walker.currentNode = start;
 
@@ -54,12 +71,17 @@ function* walkNodes({ ancestor, start, end }: { ancestor: Node; start: Node; end
   }
 }
 
-function restrictCapabilities(capabilities: EditorExtension[], iter: Iterable<Node>) {
+function restrictCapabilities(
+  capabilities: EditorExtension[],
+  iter: Iterable<Node>,
+) {
   for (const node of iter) {
     if (!(node instanceof HTMLElement)) {
       continue;
     }
-    const elCapabilities = (node as any).capabilities as EditorExtension[] | undefined;
+    const elCapabilities = (node as any).capabilities as
+      | EditorExtension[]
+      | undefined;
     if (!elCapabilities) {
       continue;
     }
@@ -84,14 +106,23 @@ export function selectionCapabilities({
 
   let capabilities = [...getExtensions(editor)];
 
-  capabilities = restrictCapabilities(capabilities, walkAncestors(start, editor));
+  capabilities = restrictCapabilities(
+    capabilities,
+    walkAncestors(start, editor),
+  );
 
   if (start !== end) {
-    capabilities = restrictCapabilities(capabilities, walkAncestors(end, editor));
+    capabilities = restrictCapabilities(
+      capabilities,
+      walkAncestors(end, editor),
+    );
   }
 
   if (!range.collapsed) {
-    capabilities = restrictCapabilities(capabilities, walkNodes({ ancestor: editor, start, end }));
+    capabilities = restrictCapabilities(
+      capabilities,
+      walkNodes({ ancestor: editor, start, end }),
+    );
   }
 
   return capabilities;

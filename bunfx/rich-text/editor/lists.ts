@@ -2,8 +2,8 @@
  * Logic for handling ol, ul, li
  */
 
-import { getContentEditableFalse } from './core';
-import { type EditorExtension } from './extensions';
+import { getContentEditableFalse } from "./core";
+import type { EditorExtension } from "./extensions";
 import {
   eachSibling,
   ensureNonEmpty,
@@ -15,10 +15,10 @@ import {
   isEmpty,
   mergeSiblings,
   toElement,
-} from './utils';
+} from "./utils";
 
 type ListItem = {
-  type: 'li';
+  type: "li";
   depth: number;
   content: Element;
   listType: string;
@@ -27,7 +27,7 @@ type ListItem = {
 };
 
 type NonList = {
-  type: 'other';
+  type: "other";
   tagName: string;
   selected: boolean;
   content: Element;
@@ -36,15 +36,15 @@ type NonList = {
 type ListModel = ListItem | NonList;
 
 function findOuterList(node: Element) {
-  while (node.parentElement?.matches('ol,ul,li')) {
+  while (node.parentElement?.matches("ol,ul,li")) {
     node = node.parentElement;
   }
   return node as HTMLElement | null;
 }
 
 function domToModel(rng: Range) {
-  const start = getStartEl(rng)?.closest('li');
-  const end = getEndEl(rng)?.closest('li');
+  const start = getStartEl(rng)?.closest("li");
+  const end = getEndEl(rng)?.closest("li");
   if (!start || !end) {
     return;
   }
@@ -63,19 +63,22 @@ function domToModel(rng: Range) {
       const selected = inRange ? rng.intersectsNode(child) : child === start;
       inRange ||= selected;
       lis.push({
-        type: 'li',
+        type: "li",
         depth,
         content: child,
         listType: list.tagName,
-        listStyle: list.style.listStyleType || '',
+        listStyle: list.style.listStyleType || "",
         selected,
       });
       for (const nest of child.children) {
-        if (nest instanceof HTMLOListElement || nest instanceof HTMLUListElement) {
+        if (
+          nest instanceof HTMLOListElement ||
+          nest instanceof HTMLUListElement
+        ) {
           walk(nest, depth + 1);
         }
       }
-      child.querySelectorAll('ol,ul,li').forEach((x) => x.remove());
+      child.querySelectorAll("ol,ul,li").forEach((x) => x.remove());
     }
   }
   walk(startList!, 0);
@@ -95,7 +98,7 @@ function sanitizeDepths(items: ListModel[]) {
   let prevDepth = -1;
   for (let i = 0; i < items.length; ++i) {
     const item = items[i]!;
-    if (item.type !== 'li') {
+    if (item.type !== "li") {
       prevDepth = -1;
       continue;
     }
@@ -104,12 +107,14 @@ function sanitizeDepths(items: ListModel[]) {
       prevDepth = item.depth;
       continue;
     }
-    const depth = prevDepth + (item.depth < prevDepth ? -1 : item.depth > prevDepth ? 1 : 0);
+    const depth =
+      prevDepth +
+      (item.depth < prevDepth ? -1 : item.depth > prevDepth ? 1 : 0);
     const level = item.depth;
     item.depth = depth;
     for (let x = i + 1; x < items.length; ++x) {
       const item = items[x]!;
-      if (item.type !== 'li') {
+      if (item.type !== "li") {
         break;
       }
       if (item.depth !== level) {
@@ -132,7 +137,7 @@ function modelToDom(items: ListModel[]) {
   const selected: Node[] = [];
 
   for (const item of sanitizeDepths(items)) {
-    if (item.type !== 'li') {
+    if (item.type !== "li") {
       list = null;
       depth = 0;
       if (item.tagName) {
@@ -140,7 +145,7 @@ function modelToDom(items: ListModel[]) {
         if (item.content.firstChild) {
           el.append(...item.content.childNodes);
         } else {
-          el.append(document.createElement('br'));
+          el.append(document.createElement("br"));
         }
         frag.append(el);
         if (item.selected) {
@@ -164,7 +169,7 @@ function modelToDom(items: ListModel[]) {
     while (item.depth > depth) {
       const sub = document.createElement(item.listType);
       if (!list.lastChild) {
-        list.append(document.createElement('li'));
+        list.append(document.createElement("li"));
       }
       list.lastElementChild!.append(sub);
       list = sub;
@@ -205,7 +210,7 @@ function changeDepth(editor: HTMLElement, direction: number) {
   }
   modifyList(rng, (items) => {
     items.forEach((x) => {
-      if (x.selected && x.type === 'li') {
+      if (x.selected && x.type === "li") {
         x.depth = Math.max(0, x.depth + direction);
       }
     });
@@ -219,7 +224,8 @@ function getListRange(editor: HTMLElement) {
     return;
   }
   const ancestor = toElement(rng.commonAncestorContainer);
-  const isList = ancestor?.closest('ol,ul') || ancestor?.querySelector('ol,ul,li');
+  const isList =
+    ancestor?.closest("ol,ul") || ancestor?.querySelector("ol,ul,li");
   return isList ? rng : undefined;
 }
 
@@ -228,8 +234,8 @@ function getListRange(editor: HTMLElement) {
  * block type (e.g. li to h1), or converting non-lists to a list.
  */
 function setListBlockType(editor: HTMLElement, rng: Range, blockType: string) {
-  if (blockType === 'ol' || blockType === 'ul') {
-    const ancestor = toElement(rng.commonAncestorContainer)?.closest('ol,ul');
+  if (blockType === "ol" || blockType === "ul") {
+    const ancestor = toElement(rng.commonAncestorContainer)?.closest("ol,ul");
     if (ancestor) {
       const list = document.createElement(blockType);
       list.append(...ancestor.childNodes);
@@ -242,7 +248,8 @@ function setListBlockType(editor: HTMLElement, rng: Range, blockType: string) {
     if (!startNode) {
       return;
     }
-    const endNode = (findRootAncestor(editor, getEndEl(rng)) || startNode).nextSibling;
+    const endNode = (findRootAncestor(editor, getEndEl(rng)) || startNode)
+      .nextSibling;
     let list = startNode as Element;
     if (!list.matches(blockType)) {
       const newList = document.createElement(blockType);
@@ -253,12 +260,12 @@ function setListBlockType(editor: HTMLElement, rng: Range, blockType: string) {
       if (node === list) {
         continue;
       }
-      if (node instanceof Element && node.matches('ol,ul')) {
+      if (node instanceof Element && node.matches("ol,ul")) {
         list.append(...node.childNodes);
         node.remove();
         continue;
       }
-      const li = document.createElement('li');
+      const li = document.createElement("li");
       list.append(li);
       if (node instanceof Text) {
         li.append(node);
@@ -274,7 +281,7 @@ function setListBlockType(editor: HTMLElement, rng: Range, blockType: string) {
       items.forEach((x, i) => {
         if (x.selected) {
           items[i] = {
-            type: 'other',
+            type: "other",
             content: x.content,
             selected: true,
             tagName: blockType,
@@ -284,8 +291,8 @@ function setListBlockType(editor: HTMLElement, rng: Range, blockType: string) {
     });
   }
 
-  mergeSiblings(editor, 'ol');
-  mergeSiblings(editor, 'ul');
+  mergeSiblings(editor, "ol");
+  mergeSiblings(editor, "ul");
 }
 
 function findNext(ancestor: Node, start: Node, selector: string) {
@@ -305,7 +312,7 @@ function collapseRange(rng: Range) {
   }
   const startEl = getStartEl(rng);
   const endEl = getEndEl(rng);
-  if (!startEl?.closest('li') && !endEl?.closest('li')) {
+  if (!startEl?.closest("li") && !endEl?.closest("li")) {
     return false;
   }
   rng.deleteContents();
@@ -317,9 +324,9 @@ function collapseRange(rng: Range) {
 function deleteContentForward(editor: HTMLElement) {
   const rng = getRange(editor);
 
-  if (rng && rng.collapsed) {
+  if (rng?.collapsed) {
     const sel = globalThis.getSelection();
-    sel?.modify('extend', 'forward', 'character');
+    sel?.modify("extend", "forward", "character");
     const extendedRng = getRange(editor);
     if (extendedRng) {
       const start = getStartEl(extendedRng);
@@ -344,7 +351,7 @@ function deleteContentBackward(editor: HTMLElement) {
   }
   const startEl = getStartEl(rng);
   const rootAncestor = findRootAncestor(editor, startEl);
-  const fromEl = startEl?.closest('li');
+  const fromEl = startEl?.closest("li");
 
   if (!fromEl) {
     return;
@@ -355,14 +362,18 @@ function deleteContentBackward(editor: HTMLElement) {
 
   const into =
     fromEl.previousSibling ||
-    (rootAncestor && rootAncestor !== fromEl && findNext(rootAncestor, fromEl, 'li')) ||
+    (rootAncestor &&
+      rootAncestor !== fromEl &&
+      findNext(rootAncestor, fromEl, "li")) ||
     rootAncestor?.previousSibling;
   if (!into) {
     return;
   }
 
   const lis =
-    into instanceof Element && !into.contains(fromEl) ? into.querySelectorAll('li:last-child') : [];
+    into instanceof Element && !into.contains(fromEl)
+      ? into.querySelectorAll("li:last-child")
+      : [];
   const intoEl = lis.length ? lis[lis.length - 1]! : into;
 
   const firstChild = fromEl.firstChild;
@@ -392,15 +403,15 @@ function insertParagraph(editor: HTMLElement) {
   if (!rng) {
     return;
   }
-  const li = rng.collapsed ? getStartEl(rng)?.closest('li') : undefined;
+  const li = rng.collapsed ? getStartEl(rng)?.closest("li") : undefined;
   if (li && isEmpty(li)) {
-    setListBlockType(editor, rng, 'p');
+    setListBlockType(editor, rng, "p");
   } else if (li) {
     rng.setEndAfter(li);
     const suffix = rng.extractContents().firstChild;
     ensureNonEmpty(li);
     if (suffix instanceof Element) {
-      li.insertAdjacentElement('afterend', suffix);
+      li.insertAdjacentElement("afterend", suffix);
       ensureNonEmpty(suffix);
       rng.setStart(suffix, 0);
     }
@@ -414,7 +425,7 @@ function setBlockType(editor: HTMLElement, e: InputEvent) {
   if (!e.data) {
     return;
   }
-  const isToList = e.data === 'ol' || e.data === 'ul';
+  const isToList = e.data === "ol" || e.data === "ul";
   const rng = isToList ? getRange(editor) : getListRange(editor);
   if (rng) {
     setListBlockType(editor, rng, e.data);
@@ -435,23 +446,24 @@ type ListPrefix = {
   listStyle: string;
 };
 const listPrefixes: ListPrefix[] = [
-  { text: '-', tag: 'ul', listStyle: '' },
-  { text: '*', tag: 'ul', listStyle: '' },
-  { text: '1.', tag: 'ol', listStyle: 'decimal' },
-  { text: 'a.', tag: 'ol', listStyle: 'lower-alpha' },
-  { text: 'A.', tag: 'ol', listStyle: 'uppper-alpha' },
-  { text: 'i.', tag: 'ol', listStyle: 'lower-roman' },
-  { text: 'I.', tag: 'ol', listStyle: 'upper-roman' },
+  { text: "-", tag: "ul", listStyle: "" },
+  { text: "*", tag: "ul", listStyle: "" },
+  { text: "1.", tag: "ol", listStyle: "decimal" },
+  { text: "a.", tag: "ol", listStyle: "lower-alpha" },
+  { text: "A.", tag: "ol", listStyle: "uppper-alpha" },
+  { text: "i.", tag: "ol", listStyle: "lower-roman" },
+  { text: "I.", tag: "ol", listStyle: "upper-roman" },
 ];
 function insertText(editor: HTMLElement, e: InputEvent) {
-  if (e.data !== ' ') {
+  if (e.data !== " ") {
     return;
   }
   const rng = getRange(editor);
   if (!rng?.collapsed) {
     return;
   }
-  const start = rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
+  const start =
+    rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
   if (!(start instanceof Text) || start.length > 2 || start.previousSibling) {
     return;
   }
@@ -467,37 +479,37 @@ function insertText(editor: HTMLElement, e: InputEvent) {
   if (!(ancestor instanceof HTMLParagraphElement)) {
     return;
   }
-  const tagName = text === '-' || text === '*' ? 'ul' : 'ol';
+  const tagName = text === "-" || text === "*" ? "ul" : "ol";
   const list = document.createElement(tagName);
-  const li = document.createElement('li');
+  const li = document.createElement("li");
   if (prefix.listStyle) {
     list.style.listStyleType = prefix.listStyle;
   }
   list.append(li);
-  li.append(document.createElement('br'));
+  li.append(document.createElement("br"));
   ancestor.replaceWith(list);
   rng.setStart(li, 0);
   return true;
 }
 
 export const extLists: EditorExtension = {
-  name: 'lists',
-  selector: 'ol,ul,li',
-  capabilities: ['block*'],
+  name: "lists",
+  selector: "ol,ul,li",
+  capabilities: ["block*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'formatOutdent') {
+    if (e.inputType === "formatOutdent") {
       return changeDepth(editor, -1);
-    } else if (e.inputType === 'formatIndent') {
+    } else if (e.inputType === "formatIndent") {
       return changeDepth(editor, 1);
-    } else if (e.inputType === 'formatBlock' && e.data) {
+    } else if (e.inputType === "formatBlock" && e.data) {
       return setBlockType(editor, e);
-    } else if (e.inputType === 'insertParagraph') {
+    } else if (e.inputType === "insertParagraph") {
       return insertParagraph(editor);
-    } else if (e.inputType === 'deleteContentBackward') {
+    } else if (e.inputType === "deleteContentBackward") {
       return deleteContentBackward(editor);
-    } else if (e.inputType === 'deleteContentForward') {
+    } else if (e.inputType === "deleteContentForward") {
       return deleteContentForward(editor);
-    } else if (e.inputType === 'insertText') {
+    } else if (e.inputType === "insertText") {
       return insertText(editor, e);
     }
   },

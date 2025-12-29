@@ -1,9 +1,11 @@
-import { useRef } from 'preact/hooks';
-import type { EditorConfig } from '../editor/config';
-import type { EditorExtension } from '../editor/extensions';
-import type { MakeUploader } from '../components/upload';
-import type { FilePicker } from '../components/rich-block';
-import { getDefaultExtensions } from '../defaults';
+import { useRef } from "preact/hooks";
+import type { FilePicker } from "../components/rich-block";
+import type { MakeUploader } from "../components/upload";
+import { getDefaultExtensions } from "../defaults";
+import type { EditorConfig } from "../editor/config";
+import type { EditorExtension } from "../editor/extensions";
+// Import RichText to register the custom element
+import "../editor";
 
 export type RichTextEditorProps = {
   value?: string;
@@ -11,6 +13,7 @@ export type RichTextEditorProps = {
   uploader?: MakeUploader;
   filepicker?: FilePicker;
   extraExtensions?: EditorExtension[];
+  autoFocus?: boolean;
 };
 
 type EditorElement = HTMLElement & { config?: EditorConfig };
@@ -28,6 +31,8 @@ export function RichTextEditor(props: RichTextEditorProps) {
 
   return (
     <rich-text
+      contentEditable
+      autofocus={props.autoFocus}
       ref={(el: EditorElement | null) => {
         if (el) {
           el.config = configRef.current;

@@ -9,16 +9,16 @@
 function escapeHTML(s: string) {
   return s.replace(/[&<>"']/g, (char) => {
     switch (char) {
-      case '&':
-        return '&amp;';
-      case '<':
-        return '&lt;';
-      case '>':
-        return '&gt;';
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
       case '"':
-        return '&quot;';
+        return "&quot;";
       case "'":
-        return '&#039;';
+        return "&#039;";
       default:
         return char;
     }
@@ -26,20 +26,20 @@ function escapeHTML(s: string) {
 }
 
 export function serialize(item: Node) {
-  let html = '';
+  let html = "";
   function walk(node: Node) {
-    if (typeof (node as any).serialize === 'function') {
+    if (typeof (node as any).serialize === "function") {
       html += (node as any).serialize();
       return;
     }
     if (node instanceof Text) {
-      html += escapeHTML(node.nodeValue || '');
+      html += escapeHTML(node.nodeValue || "");
       return;
     }
     if (!(node instanceof Element)) {
       return;
     }
-    if (node.tagName === 'EDITOR-UI') {
+    if (node.tagName === "EDITOR-UI") {
       return;
     }
     if (!node.firstChild) {
@@ -55,7 +55,7 @@ export function serialize(item: Node) {
 }
 
 export function serializeChildren(el: Element | null) {
-  let html = '';
+  let html = "";
   el?.childNodes.forEach((n) => {
     html += serialize(n);
   });
@@ -63,7 +63,7 @@ export function serializeChildren(el: Element | null) {
 }
 
 export function serializeAttrs(el: Element) {
-  let html = '';
+  let html = "";
   for (const attr of el.attributes) {
     html += ` ${attr.name}="${escapeAttrValue(attr.value)}"`;
   }
@@ -72,10 +72,10 @@ export function serializeAttrs(el: Element) {
 
 export function escapeAttrValue(value: string) {
   const entities: Record<string, string> = {
-    '&': '&amp;',
-    '"': '&quot;',
-    '<': '&lt;',
-    '>': '&gt;',
+    "&": "&amp;",
+    '"': "&quot;",
+    "<": "&lt;",
+    ">": "&gt;",
   };
   return value.replace(/[&"<>]/g, (match) => entities[match] || match);
 }

@@ -1,10 +1,10 @@
-import { getExtensions } from './extensions';
+import { getExtensions } from "./extensions";
 
 /**
  * Find the root rich-text editor element.
  */
 export function findEditor(el: Element): HTMLElement | null {
-  return el.closest('rich-text');
+  return el.closest("rich-text");
 }
 
 /**
@@ -82,15 +82,20 @@ export function wrapInline<T extends ParentNode>(content: T, el: Element) {
   return content;
 }
 
-export function mergeSiblings<T extends ParentNode>(content: T, selector: string) {
-  Array.from(content.querySelectorAll(`${selector} + ${selector}`)).forEach((x) => {
-    const prev = x.previousElementSibling;
-    if (!prev) {
-      return;
-    }
-    prev.append(...x.childNodes);
-    x.remove();
-  });
+export function mergeSiblings<T extends ParentNode>(
+  content: T,
+  selector: string,
+) {
+  Array.from(content.querySelectorAll(`${selector} + ${selector}`)).forEach(
+    (x) => {
+      const prev = x.previousElementSibling;
+      if (!prev) {
+        return;
+      }
+      prev.append(...x.childNodes);
+      x.remove();
+    },
+  );
   return content;
 }
 
@@ -117,7 +122,11 @@ export function merge(rng: Range, content: DocumentFragment) {
  * Recursively merge matching nested structures into the left node.
  */
 function mergeNodes(into: Node | null, from: Node | null) {
-  while (into instanceof Element && from instanceof Element && into.nodeName === from.nodeName) {
+  while (
+    into instanceof Element &&
+    from instanceof Element &&
+    into.nodeName === from.nodeName
+  ) {
     const tmpLeft = into;
     const tmpRight = from;
     into = into.lastChild;
@@ -131,7 +140,7 @@ function mergeNodes(into: Node | null, from: Node | null) {
 export function removeEmptyNodes(editor: HTMLElement) {
   const exts = getExtensions(editor);
   const childless = exts.filter((x) => x.isChildless).map((x) => x.tagName);
-  const selector = `:empty:not(${childless.join(',')})`;
+  const selector = `:empty:not(${childless.join(",")})`;
   let empty = editor.querySelector(selector);
   while (empty) {
     empty.remove();
@@ -139,7 +148,10 @@ export function removeEmptyNodes(editor: HTMLElement) {
   }
 }
 
-export function toggleFormat(editor: HTMLElement, fmt: { tagName: string; selector: string }) {
+export function toggleFormat(
+  editor: HTMLElement,
+  fmt: { tagName: string; selector: string },
+) {
   const rng = getRange(editor);
   if (!rng) {
     return;
@@ -161,12 +173,15 @@ export function findRootAncestor(editor: HTMLElement, node: Node | null) {
   return node;
 }
 
-export function findEditableScope(el: Element | null | undefined, fallback: HTMLElement) {
-  const editable = el?.closest('[contenteditable]');
-  if (editable?.getAttribute('contenteditable') === 'false') {
+export function findEditableScope(
+  el: Element | null | undefined,
+  fallback: HTMLElement,
+) {
+  const editable = el?.closest("[contenteditable]");
+  if (editable?.getAttribute("contenteditable") === "false") {
     return;
   }
-  if (editable?.getAttribute('contenteditable') === 'true') {
+  if (editable?.getAttribute("contenteditable") === "true") {
     return editable as HTMLElement;
   }
   return fallback;
@@ -174,7 +189,7 @@ export function findEditableScope(el: Element | null | undefined, fallback: HTML
 
 export function* eachSibling(start: Node, end: Node | null) {
   let node: Node | null = start;
-  while (node && node != end) {
+  while (node && node !== end) {
     const next: Node | null = node.nextSibling;
     yield node;
     node = next;
@@ -200,8 +215,10 @@ export function toggleBlockType(editor: HTMLElement, blockType: string) {
     return;
   }
   const endNode = (
-    findRootAncestor(scope, rng.endContainer.childNodes[rng.endOffset] || rng.endContainer) ||
-    startNode
+    findRootAncestor(
+      scope,
+      rng.endContainer.childNodes[rng.endOffset] || rng.endContainer,
+    ) || startNode
   ).nextSibling;
   const nodes: Node[] = [];
   let isToggleOn = true;
@@ -214,7 +231,7 @@ export function toggleBlockType(editor: HTMLElement, blockType: string) {
   if (!nodes.length) {
     return;
   }
-  const tagName = isToggleOn ? blockType : 'p';
+  const tagName = isToggleOn ? blockType : "p";
   for (let i = 0; i < nodes.length; ++i) {
     const node = nodes[i];
     const el = document.createElement(tagName);
@@ -245,12 +262,16 @@ export function isEmpty(node: Node) {
 }
 
 export function ensureNonEmpty(el: ChildNode | null) {
-  if (el instanceof Element && isEmpty(el) && !el.querySelector('br')) {
-    el.append(document.createElement('br'));
+  if (el instanceof Element && isEmpty(el) && !el.querySelector("br")) {
+    el.append(document.createElement("br"));
   }
 }
 
-function isAtBoundary(n: Node, startNode: Node, moveNext: (walker: TreeWalker) => Node | null) {
+function isAtBoundary(
+  n: Node,
+  startNode: Node,
+  moveNext: (walker: TreeWalker) => Node | null,
+) {
   const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT);
   walker.currentNode = startNode;
   while (moveNext(walker)) {
@@ -262,7 +283,8 @@ function isAtBoundary(n: Node, startNode: Node, moveNext: (walker: TreeWalker) =
 }
 
 export function isAtEndOf(rng: Range, n: Node) {
-  const startNode = rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
+  const startNode =
+    rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
   if (startNode instanceof Text && rng.startOffset < startNode.length - 1) {
     return false;
   }
@@ -270,7 +292,8 @@ export function isAtEndOf(rng: Range, n: Node) {
 }
 
 export function isAtStartOf(rng: Range, n: Node) {
-  const startNode = rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
+  const startNode =
+    rng.startContainer.childNodes[rng.startOffset] || rng.startContainer;
   if (startNode instanceof Text && rng.startOffset) {
     return false;
   }
@@ -299,7 +322,11 @@ export function on<T extends HTMLElement, K extends keyof HTMLElementEventMap>(
   name: K,
   listener: (this: T, ev: HTMLElementEventMap[K]) => any,
 ): () => void;
-export function on(el: HTMLElement | Document, name: string, listener: EventListener): () => void {
+export function on(
+  el: HTMLElement | Document,
+  name: string,
+  listener: EventListener,
+): () => void {
   el.addEventListener(name, listener);
   return () => el.removeEventListener(name, listener);
 }
@@ -326,10 +353,10 @@ export function deleteBlock(block: HTMLElement) {
 }
 
 export function insertParagraph(after: Element) {
-  const p = document.createElement('p');
-  const br = document.createElement('br');
+  const p = document.createElement("p");
+  const br = document.createElement("br");
   p.append(br);
-  after.insertAdjacentElement('afterend', p);
+  after.insertAdjacentElement("afterend", p);
   return p;
 }
 
@@ -351,11 +378,15 @@ export function setCursorAtEnd(n: Node) {
   sel?.addRange(rng);
 }
 
-export function insertBlockFromHTML(e: InputEvent, editor: HTMLElement, selector: string): boolean {
-  if (e.inputType !== 'insertFromPaste' && e.inputType !== 'insertFromDrop') {
+export function insertBlockFromHTML(
+  e: InputEvent,
+  editor: HTMLElement,
+  selector: string,
+): boolean {
+  if (e.inputType !== "insertFromPaste" && e.inputType !== "insertFromDrop") {
     return false;
   }
-  const html = e.data || e.dataTransfer?.getData('text/html');
+  const html = e.data || e.dataTransfer?.getData("text/html");
   if (!html || !html.includes(selector)) {
     return false;
   }
@@ -374,21 +405,24 @@ export function insertBlockFromHTML(e: InputEvent, editor: HTMLElement, selector
   }
   let insertedBlock: Element | null;
   if (isEmpty(ancestor)) {
-    ancestor.insertAdjacentHTML('beforebegin', html);
+    ancestor.insertAdjacentHTML("beforebegin", html);
     insertedBlock = ancestor.previousElementSibling;
     ancestor.remove();
   } else {
-    ancestor.insertAdjacentHTML('afterend', html);
+    ancestor.insertAdjacentHTML("afterend", html);
     insertedBlock = ancestor.nextElementSibling;
   }
   if (insertedBlock) {
     requestAnimationFrame(() => {
-      const innerEditable = insertedBlock.querySelector('[contenteditable="true"]');
+      const innerEditable = insertedBlock.querySelector(
+        '[contenteditable="true"]',
+      );
       if (innerEditable) {
         const target = innerEditable.firstElementChild || innerEditable;
         setCursorAtStart(target);
       } else {
-        const nextSibling = insertedBlock.nextElementSibling || insertParagraph(insertedBlock);
+        const nextSibling =
+          insertedBlock.nextElementSibling || insertParagraph(insertedBlock);
         setCursorAtStart(nextSibling);
       }
     });

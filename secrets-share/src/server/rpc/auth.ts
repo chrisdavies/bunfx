@@ -61,7 +61,7 @@ export const sendLoginCode = endpoint({
 
     const mailFrom =
       config.MAILER_PROVIDER === "mailgun"
-        ? config.MAIL_FROM ?? `noreply@${config.MAILGUN_DOMAIN}`
+        ? (config.MAIL_FROM ?? `noreply@${config.MAILGUN_DOMAIN}`)
         : "noreply@example.com";
 
     await mailer.send({

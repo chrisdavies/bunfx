@@ -1,22 +1,22 @@
-import { render } from 'preact';
-import { Signal, effect, signal } from '@preact/signals';
-import type { EditorExtension } from '../editor/extensions';
-import { getExtensions } from '../editor/extensions';
-import { deleteBlock, findEditor, insertBlockFromHTML } from '../editor/utils';
-import { handleParagraphAsLineBreak } from '../editor/core';
-import { serializeChildren } from '../editor/serialization';
-import type { MenuChoice } from './editor-menu';
+import { effect, type Signal, signal } from "@preact/signals";
+import { render } from "preact";
+import { handleParagraphAsLineBreak } from "../editor/core";
+import type { EditorExtension } from "../editor/extensions";
+import { getExtensions } from "../editor/extensions";
+import { serializeChildren } from "../editor/serialization";
+import { deleteBlock, findEditor, insertBlockFromHTML } from "../editor/utils";
+import { IcoTextCenter, IcoTextLeft, IcoTextRight } from "../icons";
+import { setCSSVar } from "../theme";
+import type { MenuChoice } from "./editor-menu";
 import {
-  MenuItem,
-  EditorMenu,
-  MenuSection,
-  MenuDivider,
-  MenuDelete,
-  MenuRadioSet,
   ColorMenuItem,
-} from './editor-menu';
-import { IcoTextCenter, IcoTextLeft, IcoTextRight } from '../icons';
-import { setCSSVar } from '../theme';
+  EditorMenu,
+  MenuDelete,
+  MenuDivider,
+  MenuItem,
+  MenuRadioSet,
+  MenuSection,
+} from "./editor-menu";
 
 type RichCtaState = {
   href?: string;
@@ -35,116 +35,154 @@ type ValueChoice = MenuChoice & {
 };
 
 const linkPaddingOpts: ValueChoice[] = [
-  { value: 'sm', label: <span>SM</span>, cssValue: '0.5rem 1rem' },
-  { value: 'md', isDefault: true, label: <span>MD</span>, cssValue: '0.75rem 1.5rem' },
-  { value: 'lg', label: <span>LG</span>, cssValue: '1rem 2rem' },
+  { value: "sm", label: <span>SM</span>, cssValue: "0.5rem 1rem" },
+  {
+    value: "md",
+    isDefault: true,
+    label: <span>MD</span>,
+    cssValue: "0.75rem 1.5rem",
+  },
+  { value: "lg", label: <span>LG</span>, cssValue: "1rem 2rem" },
 ];
 
 const linkRoundingOpts: ValueChoice[] = [
-  { value: 'none', label: <span>None</span>, cssValue: '0px' },
-  { value: 'sm', label: <span>SM</span>, cssValue: '0.25rem' },
-  { value: 'md', isDefault: true, label: <span>MD</span>, cssValue: '0.5rem' },
-  { value: 'lg', label: <span>LG</span>, cssValue: '1rem' },
-  { value: 'full', label: <span>Full</span>, cssValue: '9999px' },
+  { value: "none", label: <span>None</span>, cssValue: "0px" },
+  { value: "sm", label: <span>SM</span>, cssValue: "0.25rem" },
+  { value: "md", isDefault: true, label: <span>MD</span>, cssValue: "0.5rem" },
+  { value: "lg", label: <span>LG</span>, cssValue: "1rem" },
+  { value: "full", label: <span>Full</span>, cssValue: "9999px" },
 ];
 
 const blockPaddingOpts: ValueChoice[] = [
-  { value: 'none', label: <span>None</span>, cssValue: '0px' },
-  { value: 'sm', label: <span>SM</span>, cssValue: '1rem' },
-  { value: 'md', isDefault: true, label: <span>MD</span>, cssValue: '2rem' },
-  { value: 'lg', label: <span>LG</span>, cssValue: '3rem' },
+  { value: "none", label: <span>None</span>, cssValue: "0px" },
+  { value: "sm", label: <span>SM</span>, cssValue: "1rem" },
+  { value: "md", isDefault: true, label: <span>MD</span>, cssValue: "2rem" },
+  { value: "lg", label: <span>LG</span>, cssValue: "3rem" },
 ];
 
 const blockAlignmentOpts: ValueChoice[] = [
-  { value: 'left', label: <span>Left</span>, cssValue: 'left' },
-  { value: 'center', isDefault: true, label: <span>Center</span>, cssValue: 'center' },
-  { value: 'right', label: <span>Right</span>, cssValue: 'right' },
+  { value: "left", label: <span>Left</span>, cssValue: "left" },
+  {
+    value: "center",
+    isDefault: true,
+    label: <span>Center</span>,
+    cssValue: "center",
+  },
+  { value: "right", label: <span>Right</span>, cssValue: "right" },
 ];
 
 const linkTextAlignOpts: ValueChoice[] = [
-  { value: 'left', label: <IcoTextLeft />, cssValue: 'left' },
-  { value: 'center', isDefault: true, label: <IcoTextCenter />, cssValue: 'center' },
-  { value: 'right', label: <IcoTextRight />, cssValue: 'right' },
+  { value: "left", label: <IcoTextLeft />, cssValue: "left" },
+  {
+    value: "center",
+    isDefault: true,
+    label: <IcoTextCenter />,
+    cssValue: "center",
+  },
+  { value: "right", label: <IcoTextRight />, cssValue: "right" },
 ];
 
-function findOptByValue<T extends ValueChoice>(opts: T[], value: string | undefined): T {
-  return opts.find((opt) => opt.value === value) || opts.find((opt) => opt.isDefault)!;
+function findOptByValue<T extends ValueChoice>(
+  opts: T[],
+  value: string | undefined,
+): T {
+  return (
+    opts.find((opt) => opt.value === value) ||
+    opts.find((opt) => opt.isDefault)!
+  );
 }
 
-function findOptByCssValue<T extends ValueChoice>(opts: T[], cssValue: string | undefined): T {
-  return opts.find((opt) => opt.cssValue === cssValue) || opts.find((opt) => opt.isDefault)!;
+function findOptByCssValue<T extends ValueChoice>(
+  opts: T[],
+  cssValue: string | undefined,
+): T {
+  return (
+    opts.find((opt) => opt.cssValue === cssValue) ||
+    opts.find((opt) => opt.isDefault)!
+  );
 }
 
 function deriveState(el: RichCta): RichCtaState {
-  const link = el.querySelector('a') as HTMLAnchorElement;
+  const link = el.querySelector("a") as HTMLAnchorElement;
   if (!link) {
-    return { linkText: 'Click here' };
+    return { linkText: "Click here" };
   }
 
   const style = getComputedStyle(el);
 
-  const linkBg = style.getPropertyValue('--theme-cta-bg').trim() || undefined;
-  const linkFg = style.getPropertyValue('--theme-cta-fg').trim() || undefined;
-  const linkPaddingCss = style.getPropertyValue('--theme-cta-padding').trim();
-  const linkRoundingCss = style.getPropertyValue('--theme-cta-rounding').trim();
-  const linkTextAlignCss = style.getPropertyValue('--theme-cta-text-align').trim();
-  const blockPaddingCss = style.getPropertyValue('--theme-cta-block-padding').trim();
-  const blockAlignmentCss = style.getPropertyValue('--theme-cta-block-align').trim();
+  const linkBg = style.getPropertyValue("--theme-cta-bg").trim() || undefined;
+  const linkFg = style.getPropertyValue("--theme-cta-fg").trim() || undefined;
+  const linkPaddingCss = style.getPropertyValue("--theme-cta-padding").trim();
+  const linkRoundingCss = style.getPropertyValue("--theme-cta-rounding").trim();
+  const linkTextAlignCss = style
+    .getPropertyValue("--theme-cta-text-align")
+    .trim();
+  const blockPaddingCss = style
+    .getPropertyValue("--theme-cta-block-padding")
+    .trim();
+  const blockAlignmentCss = style
+    .getPropertyValue("--theme-cta-block-align")
+    .trim();
 
   return {
-    href: link.getAttribute('href') || '',
+    href: link.getAttribute("href") || "",
     linkBg,
     linkFg,
     linkPadding: findOptByCssValue(linkPaddingOpts, linkPaddingCss).value,
     linkRounding: findOptByCssValue(linkRoundingOpts, linkRoundingCss).value,
     linkTextAlign: findOptByCssValue(linkTextAlignOpts, linkTextAlignCss).value,
     blockPadding: findOptByCssValue(blockPaddingOpts, blockPaddingCss).value,
-    blockAlignment: findOptByCssValue(blockAlignmentOpts, blockAlignmentCss).value,
-    linkText: link.textContent || '',
+    blockAlignment: findOptByCssValue(blockAlignmentOpts, blockAlignmentCss)
+      .value,
+    linkText: link.textContent || "",
   };
 }
 
 function writeCssVars(el: HTMLElement, state: RichCtaState) {
-  setCSSVar(el, '--theme-cta-bg', state.linkBg);
-  setCSSVar(el, '--theme-cta-fg', state.linkFg);
-  setCSSVar(el, '--theme-cta-padding', findOptByValue(linkPaddingOpts, state.linkPadding).cssValue);
+  setCSSVar(el, "--theme-cta-bg", state.linkBg);
+  setCSSVar(el, "--theme-cta-fg", state.linkFg);
   setCSSVar(
     el,
-    '--theme-cta-rounding',
+    "--theme-cta-padding",
+    findOptByValue(linkPaddingOpts, state.linkPadding).cssValue,
+  );
+  setCSSVar(
+    el,
+    "--theme-cta-rounding",
     findOptByValue(linkRoundingOpts, state.linkRounding).cssValue,
   );
   setCSSVar(
     el,
-    '--theme-cta-text-align',
+    "--theme-cta-text-align",
     findOptByValue(linkTextAlignOpts, state.linkTextAlign).cssValue,
   );
   setCSSVar(
     el,
-    '--theme-cta-block-padding',
+    "--theme-cta-block-padding",
     findOptByValue(blockPaddingOpts, state.blockPadding).cssValue,
   );
   setCSSVar(
     el,
-    '--theme-cta-block-align',
+    "--theme-cta-block-align",
     findOptByValue(blockAlignmentOpts, state.blockAlignment).cssValue,
   );
 }
 
 function linkStyle() {
   return {
-    backgroundColor: 'var(--theme-cta-bg, #3b82f6)',
-    color: 'var(--theme-cta-fg, #ffffff)',
-    padding: 'var(--theme-cta-padding, 0.75rem 1.5rem)',
-    borderRadius: 'var(--theme-cta-rounding, 0.5rem)',
-    textAlign: 'var(--theme-cta-text-align, center)',
+    backgroundColor: "var(--theme-cta-bg, #3b82f6)",
+    color: "var(--theme-cta-fg, #ffffff)",
+    padding: "var(--theme-cta-padding, 0.75rem 1.5rem)",
+    borderRadius: "var(--theme-cta-rounding, 0.5rem)",
+    textAlign: "var(--theme-cta-text-align, center)",
   };
 }
 
 function blockStyle() {
   return {
-    paddingTop: 'var(--theme-cta-block-padding, 2rem)',
-    paddingBottom: 'var(--theme-cta-block-padding, 2rem)',
-    textAlign: 'var(--theme-cta-block-align, center)',
+    paddingTop: "var(--theme-cta-block-padding, 2rem)",
+    paddingBottom: "var(--theme-cta-block-padding, 2rem)",
+    textAlign: "var(--theme-cta-block-align, center)",
   };
 }
 
@@ -163,14 +201,14 @@ export class RichCta extends HTMLElement {
 
   constructor(state?: RichCtaState) {
     super();
-    this.state = signal(state || { linkText: 'Click here' });
+    this.state = signal(state || { linkText: "Click here" });
   }
 
   connectedCallback() {
     const editor = findEditor(this);
 
-    const existingLink = this.querySelector('a');
-    const initialContent = existingLink?.innerHTML || '';
+    const existingLink = this.querySelector("a");
+    const initialContent = existingLink?.innerHTML || "";
     if (existingLink && !this.state.value.linkText) {
       this.state.value = deriveState(this);
     }
@@ -185,8 +223,9 @@ export class RichCta extends HTMLElement {
       return;
     }
 
-    this.contentEditable = 'false';
-    this.className = 'focus-within:ring-2 ring-offset-2 ring-indigo-600 group/cta';
+    this.contentEditable = "false";
+    this.className =
+      "focus-within:ring-2 ring-offset-2 ring-indigo-600 group/cta";
     this.tabIndex = -1;
 
     render(
@@ -210,7 +249,7 @@ export class RichCta extends HTMLElement {
     const state = { ...this.state.value };
     const el = new RichCta(state);
     applyStyles(el);
-    const link = this.querySelector('a');
+    const link = this.querySelector("a");
     const linkContent = serializeChildren(link);
     render(<ReadonlyRichCta state={el.state} linkContent={linkContent} />, el);
     const html = el.outerHTML;
@@ -219,19 +258,19 @@ export class RichCta extends HTMLElement {
   }
 }
 
-customElements.define('rich-cta', RichCta);
+customElements.define("rich-cta", RichCta);
 
 export function createEmptyHTML(): string {
   const state = {
-    href: '',
-    linkBg: '',
-    linkFg: '',
-    linkPadding: 'md',
-    linkRounding: 'md',
-    linkTextAlign: 'center',
-    blockPadding: 'md',
-    blockAlignment: 'center',
-    linkText: 'Click here',
+    href: "",
+    linkBg: "",
+    linkFg: "",
+    linkPadding: "md",
+    linkRounding: "md",
+    linkTextAlign: "center",
+    blockPadding: "md",
+    blockAlignment: "center",
+    linkText: "Click here",
   };
   const el = new RichCta(state);
   applyStyles(el);
@@ -252,7 +291,7 @@ function CtaSettings(props: { state: Signal<RichCtaState>; onDelete(): void }) {
               <input
                 type="text"
                 class="text-sm w-48 px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={state.href || ''}
+                value={state.href || ""}
                 placeholder="https://example.com"
                 onInput={(e) => {
                   props.state.value = {
@@ -357,7 +396,7 @@ function EditableRichCta(props: {
       <a
         contentEditable
         class="cursor-pointer"
-        href={state.href || '#'}
+        href={state.href || "#"}
         style={linkStyle()}
         onClick={(e) => e.preventDefault()}
         ref={(el: any) => {
@@ -367,21 +406,27 @@ function EditableRichCta(props: {
           const exts = getExtensions(props.editor);
           el.capabilities = exts.filter((x) => {
             return (
-              (x.capabilities.includes('inline*') || x.name === 'br') && x.name !== 'hyperlinks'
+              (x.capabilities.includes("inline*") || x.name === "br") &&
+              x.name !== "hyperlinks"
             );
           });
         }}
-        dangerouslySetInnerHTML={{ __html: props.initialContent || 'Click here' }}
+        dangerouslySetInnerHTML={{
+          __html: props.initialContent || "Click here",
+        }}
       />
     </>
   );
 }
 
-function ReadonlyRichCta(props: { state: Signal<RichCtaState>; linkContent: string }) {
+function ReadonlyRichCta(props: {
+  state: Signal<RichCtaState>;
+  linkContent: string;
+}) {
   const state = props.state.value;
   return (
     <a
-      href={state.href || '#'}
+      href={state.href || "#"}
       style={linkStyle()}
       dangerouslySetInnerHTML={{ __html: props.linkContent }}
     />
@@ -389,13 +434,13 @@ function ReadonlyRichCta(props: { state: Signal<RichCtaState>; linkContent: stri
 }
 
 export const extRichCta: EditorExtension = {
-  name: 'rich-cta',
-  tagName: 'rich-cta',
-  capabilities: ['block*'],
+  name: "rich-cta",
+  tagName: "rich-cta",
+  capabilities: ["block*"],
   onbeforeinput(e, editor) {
-    if (handleParagraphAsLineBreak(e, editor, 'rich-cta a')) {
+    if (handleParagraphAsLineBreak(e, editor, "rich-cta a")) {
       return true;
     }
-    return insertBlockFromHTML(e, editor, 'rich-cta');
+    return insertBlockFromHTML(e, editor, "rich-cta");
   },
 };

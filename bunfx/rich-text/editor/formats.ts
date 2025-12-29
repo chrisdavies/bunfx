@@ -2,8 +2,8 @@
  * Format-related logic (bold, italic, etc)
  */
 
-import { getExtensions, type EditorExtension } from './extensions';
-import { getRange, removeEmptyNodes, toggleFormat } from './utils';
+import { type EditorExtension, getExtensions } from "./extensions";
+import { getRange, removeEmptyNodes, toggleFormat } from "./utils";
 
 type Formattable = HTMLElement & {
   pendingFormats: Set<string>;
@@ -17,13 +17,17 @@ function getFormattable(editor: HTMLElement): Formattable {
   return fmt;
 }
 
-function defFormat(fmt: { tagName: string; selector: string; inputType: string }): EditorExtension {
+function defFormat(fmt: {
+  tagName: string;
+  selector: string;
+  inputType: string;
+}): EditorExtension {
   return {
     name: fmt.inputType,
     selector: fmt.selector,
     tagName: fmt.tagName,
     isInline: true,
-    capabilities: ['inline*', 'format*'],
+    capabilities: ["inline*", "format*"],
     onbeforeinput(e, editorEl) {
       const editor = getFormattable(editorEl);
       if (e.inputType !== fmt.inputType) {
@@ -47,10 +51,11 @@ function defFormat(fmt: { tagName: string; selector: string; inputType: string }
 }
 
 export const extPendingFormats: EditorExtension = {
-  name: 'pendingFormats',
-  capabilities: ['inline*', 'format*'],
+  name: "pendingFormats",
+  capabilities: ["inline*", "format*"],
   onselectionchange(_e, editor) {
     getFormattable(editor).pendingFormats.clear();
+    return undefined;
   },
   onbeforeinput(_e, editorEl) {
     const editor = getFormattable(editorEl);
@@ -63,39 +68,41 @@ export const extPendingFormats: EditorExtension = {
     if (!rng) {
       return;
     }
-    const txt = document.createTextNode('');
+    const txt = document.createTextNode("");
     rng.insertNode(txt);
     const exts = getExtensions(editor);
     if (exts) {
       for (const tagName of fmts) {
         const def = exts.find((x) => x.tagName === tagName);
-        def && toggleFormat(editor, { tagName, selector: def?.selector || tagName });
+        def &&
+          toggleFormat(editor, { tagName, selector: def?.selector || tagName });
       }
     }
     rng.selectNode(txt);
+    return undefined;
   },
 };
 
 export const extBold = defFormat({
-  inputType: 'formatBold',
-  tagName: 'strong',
-  selector: 'b,strong',
+  inputType: "formatBold",
+  tagName: "strong",
+  selector: "b,strong",
 });
 
 export const extItalic = defFormat({
-  inputType: 'formatItalic',
-  tagName: 'em',
-  selector: 'i,em',
+  inputType: "formatItalic",
+  tagName: "em",
+  selector: "i,em",
 });
 
 export const extUnderline = defFormat({
-  inputType: 'formatUnderline',
-  tagName: 'u',
-  selector: 'u',
+  inputType: "formatUnderline",
+  tagName: "u",
+  selector: "u",
 });
 
 export const extStrikeThrough = defFormat({
-  inputType: 'formatStrikeThrough',
-  tagName: 's',
-  selector: 's',
+  inputType: "formatStrikeThrough",
+  tagName: "s",
+  selector: "s",
 });

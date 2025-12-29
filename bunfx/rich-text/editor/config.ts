@@ -1,6 +1,6 @@
-import type { EditorExtension } from './extensions';
-import type { MakeUploader } from '../components/upload';
-import type { FilePicker } from '../components/rich-block';
+import type { FilePicker } from "../components/rich-block";
+import type { MakeUploader } from "../components/upload";
+import type { EditorExtension } from "./extensions";
 
 export type EditorConfig = {
   extensions: EditorExtension[];
@@ -10,6 +10,8 @@ export type EditorConfig = {
 
 type EditorElement = HTMLElement & { config?: EditorConfig };
 
-export function getEditorConfig(editor: EditorElement | null): EditorConfig | undefined {
+export function getEditorConfig(
+  editor: EditorElement | null,
+): EditorConfig | undefined {
   return editor?.config;
 }

@@ -36,7 +36,6 @@ Example:
 const toCamelCase = (str: string): string =>
   str.replace(/-([a-z])/g, (g) => g[1]!.toUpperCase());
 
-// biome-ignore lint/suspicious/noExplicitAny: CLI arg parsing returns mixed types
 const parseValue = (value: string): any => {
   if (value === "true") return true;
   if (value === "false") return false;

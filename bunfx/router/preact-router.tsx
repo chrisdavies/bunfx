@@ -176,7 +176,10 @@ async function loadRoute(
       const returnTo = encodeURIComponent(
         loading.url.pathname + loading.url.search,
       );
-      navigate({ href: `${errorConfig.loginRoute}?returnTo=${returnTo}`, push: true });
+      navigate({
+        href: `${errorConfig.loginRoute}?returnTo=${returnTo}`,
+        push: true,
+      });
       return;
     }
 

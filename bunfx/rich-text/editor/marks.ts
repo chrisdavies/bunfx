@@ -2,11 +2,22 @@
  * Logic for handling marks (bg and fg color) for selections.
  */
 
-import { type EditorExtension } from './extensions';
-import { getRange, getStartEl, merge, removeEmptyNodes, split, wrapInline } from './utils';
+import type { EditorExtension } from "./extensions";
+import {
+  getRange,
+  getStartEl,
+  merge,
+  removeEmptyNodes,
+  split,
+  wrapInline,
+} from "./utils";
 
-function unwrapMarks(content: DocumentFragment, attr: 'background' | 'color', color: string) {
-  content.querySelectorAll('mark').forEach((el) => {
+function unwrapMarks(
+  content: DocumentFragment,
+  attr: "background" | "color",
+  color: string,
+) {
+  content.querySelectorAll("mark").forEach((el) => {
     el.style[attr] = color;
     if (!el.style.background && !el.style.color) {
       el.replaceWith(...el.childNodes);
@@ -20,12 +31,16 @@ function unwrapMarks(content: DocumentFragment, attr: 'background' | 'color', co
  * If the selection is collapsed, this is an *update* color.
  * If the selection is expanded, this is a new mark.
  */
-function insertMark(editor: HTMLElement, attr: 'background' | 'color', color: string) {
+function insertMark(
+  editor: HTMLElement,
+  attr: "background" | "color",
+  color: string,
+) {
   const rng = getRange(editor);
   if (!rng) {
     return;
   }
-  const selector = 'mark';
+  const selector = "mark";
   const existing = getStartEl(rng)?.closest(selector);
   if (!color) {
     if (rng.collapsed && !existing) {
@@ -48,7 +63,7 @@ function insertMark(editor: HTMLElement, attr: 'background' | 'color', color: st
     existing?.setAttribute(attr, color);
   } else {
     const content = split(rng, selector);
-    const mark = document.createElement('mark');
+    const mark = document.createElement("mark");
     mark.style[attr] = color;
     unwrapMarks(content, attr, color);
     wrapInline(content, mark);
@@ -58,12 +73,19 @@ function insertMark(editor: HTMLElement, attr: 'background' | 'color', color: st
 }
 
 export const extMarks: EditorExtension = {
-  name: 'mark',
-  tagName: 'mark',
-  capabilities: ['inline*'],
+  name: "mark",
+  tagName: "mark",
+  capabilities: ["inline*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'formatBackColor' || e.inputType === 'formatFontColor') {
-      insertMark(editor, e.inputType === 'formatBackColor' ? 'background' : 'color', e.data || '');
+    if (
+      e.inputType === "formatBackColor" ||
+      e.inputType === "formatFontColor"
+    ) {
+      insertMark(
+        editor,
+        e.inputType === "formatBackColor" ? "background" : "color",
+        e.data || "",
+      );
       return true;
     }
   },

@@ -4,7 +4,7 @@
  * snapshots, and highlighting it when the editor loses focus.
  */
 
-import { findRootAncestor, getRange, on } from './utils';
+import { findRootAncestor, getRange, on } from "./utils";
 
 type SelectionState = {
   highlight?: Highlight;
@@ -34,14 +34,17 @@ export type SerializedSelection = {
 
 export class SelectionChangeEvent extends CustomEvent<Range> {
   constructor(rng: Range) {
-    super('selectionchange', {
+    super("selectionchange", {
       detail: rng,
     });
   }
 }
 
-export function onSelectionChange(editor: HTMLElement, handler: (e: SelectionChangeEvent) => void) {
-  return on(editor, 'selectionchange' as any, handler);
+export function onSelectionChange(
+  editor: HTMLElement,
+  handler: (e: SelectionChangeEvent) => void,
+) {
+  return on(editor, "selectionchange" as any, handler);
 }
 
 export function getSelectionState(editor: HTMLElement) {
@@ -69,9 +72,9 @@ function registerBlurHighlight(editor: HTMLElement) {
   if (!CSS.highlights) {
     return [];
   }
-  const highlightId = 'editor-selection';
+  const highlightId = "editor-selection";
   return [
-    on(editor, 'blur', () => {
+    on(editor, "blur", () => {
       const state = getSelectionState(editor);
       if (!state.range) {
         return;
@@ -81,7 +84,7 @@ function registerBlurHighlight(editor: HTMLElement) {
       CSS.highlights.set(highlightId, state.highlight);
     }),
 
-    on(editor, 'focus', () => {
+    on(editor, "focus", () => {
       const state = getSelectionState(editor);
       if (state.highlight && state.range) {
         state.highlight.delete(state.range);
@@ -110,17 +113,17 @@ function attachSelectionChange(editor: HTMLElement) {
       return;
     }
     watchingSelection = true;
-    document.addEventListener('selectionchange', onselectionchange);
+    document.addEventListener("selectionchange", onselectionchange);
   };
   const removeSelectionWatcher = () => {
     watchingSelection = false;
-    document.removeEventListener('selectionchange', onselectionchange);
+    document.removeEventListener("selectionchange", onselectionchange);
   };
 
   return [
     removeSelectionWatcher,
-    on(editor, 'focusin', watchSelection),
-    on(editor, 'focusout', (e) => {
+    on(editor, "focusin", watchSelection),
+    on(editor, "focusout", (e) => {
       if (!e.relatedTarget || !editor.contains(e.relatedTarget as Node)) {
         removeSelectionWatcher();
       }
@@ -136,7 +139,11 @@ export function attachSelectionWatcher(editor: HTMLElement) {
   return () => off.forEach((fn) => fn());
 }
 
-function serializePos(editor: HTMLElement, rangeNode: Node, rangeOffset: number) {
+function serializePos(
+  editor: HTMLElement,
+  rangeNode: Node,
+  rangeOffset: number,
+) {
   const node = rangeNode.childNodes[rangeOffset] || rangeNode;
   const rootChild = findRootAncestor(editor, node);
   if (!rootChild) {
@@ -210,7 +217,9 @@ function deserializePos(
   }
 }
 
-export function serializeSelection(editor: HTMLElement): SerializedSelection | undefined {
+export function serializeSelection(
+  editor: HTMLElement,
+): SerializedSelection | undefined {
   const rng = getRange(editor);
   if (!rng) {
     return;
@@ -219,11 +228,16 @@ export function serializeSelection(editor: HTMLElement): SerializedSelection | u
   if (!start) {
     return;
   }
-  const end = rng.collapsed ? undefined : serializePos(editor, rng.endContainer, rng.endOffset);
+  const end = rng.collapsed
+    ? undefined
+    : serializePos(editor, rng.endContainer, rng.endOffset);
   return { start, end };
 }
 
-export function restoreSelection(editor: HTMLElement, selection?: SerializedSelection) {
+export function restoreSelection(
+  editor: HTMLElement,
+  selection?: SerializedSelection,
+) {
   if (!selection) {
     return;
   }

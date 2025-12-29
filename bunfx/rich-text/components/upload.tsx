@@ -3,11 +3,11 @@
  * components for displaying upload progress.
  */
 
-import { Button } from '../ui';
-import { IcoRefresh } from '../icons';
-import { Signal, effect, signal } from '@preact/signals';
-import type { ComponentChildren } from 'preact';
-import { render } from 'preact';
+import { effect, type Signal, signal } from "@preact/signals";
+import type { ComponentChildren } from "preact";
+import { render } from "preact";
+import { IcoRefresh } from "../icons";
+import { Button } from "../ui";
 
 export type UploadProgress = {
   progress: number;
@@ -62,9 +62,9 @@ function findUpload(child: Element, uploadId: string) {
 export function makeUpload(
   file: File | Blob,
   makeUploader: MakeUploader,
-  onComplete: Upload['onComplete'],
+  onComplete: Upload["onComplete"],
 ): Signal<Upload> {
-  const name = (file as File).name || file.type.replaceAll(/[^0-9a-zA-Z]/g, '');
+  const name = (file as File).name || file.type.replaceAll(/[^0-9a-zA-Z]/g, "");
   const upload = signal<Upload>({
     id: globalThis.crypto.randomUUID(),
     file,
@@ -96,7 +96,10 @@ export function makeUpload(
       const result = await uploader.upload();
       upload.value = { ...upload.value, url: result?.publicUrl };
     } catch (error) {
-      upload.value = { ...upload.value, error: error instanceof Error ? error : new Error(String(error)) };
+      upload.value = {
+        ...upload.value,
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
   }
   performUpload();
@@ -117,7 +120,7 @@ export class FileUpload extends HTMLElement {
   ondisconnect: Array<() => void> = [];
 
   connectedCallback() {
-    const uploadid = this.getAttribute('uploadid');
+    const uploadid = this.getAttribute("uploadid");
     const upload = uploadid && findUpload(this, uploadid);
     if (!upload) {
       return <UploadError message="Upload not found." />;
@@ -141,7 +144,7 @@ export class FileUpload extends HTMLElement {
   }
 }
 
-customElements.define('file-upload', FileUpload);
+customElements.define("file-upload", FileUpload);
 
 function UploadUI(props: { upload: Signal<Upload> }) {
   const upload = props.upload.value;
@@ -196,7 +199,10 @@ function RetryableUploadError({ upload }: { upload: Upload }) {
   );
 }
 
-function UploadError(props: { message: ComponentChildren; children?: ComponentChildren }) {
+function UploadError(props: {
+  message: ComponentChildren;
+  children?: ComponentChildren;
+}) {
   return (
     <editor-ui class="bg-gray-800 text-white rounded-lg p-4 shadow-lg text-sm flex flex-col gap-4">
       <div class="flex flex-col">

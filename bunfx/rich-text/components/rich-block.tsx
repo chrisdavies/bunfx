@@ -2,32 +2,34 @@
  * Web component for rendering styled content blocks in the editor.
  */
 
-import { render } from 'preact';
-import { Signal, effect, signal } from '@preact/signals';
-import type { EditorExtension } from '../editor/extensions';
-import { getEditorConfig } from '../editor/config';
-import { deleteBlock, findEditor, insertBlockFromHTML } from '../editor/utils';
-import { serializeChildren } from '../editor/serialization';
-import type { MenuChoice } from './editor-menu';
+import { effect, type Signal, signal } from "@preact/signals";
+import { render } from "preact";
+import { getEditorConfig } from "../editor/config";
+import type { EditorExtension } from "../editor/extensions";
+import { serializeChildren } from "../editor/serialization";
+import { deleteBlock, findEditor, insertBlockFromHTML } from "../editor/utils";
+import { IcoDotsHorizontal } from "../icons";
+import { setCSSVar } from "../theme";
+import { Toggle } from "../ui";
+import type { MenuChoice } from "./editor-menu";
 import {
-  MenuItem,
-  EditorMenu,
-  MenuSection,
-  MenuDivider,
-  MenuDelete,
-  MenuRadioSet,
-  MenuLabel,
   ColorMenuItem,
-} from './editor-menu';
-import { Toggle } from '../ui';
-import { IcoDotsHorizontal } from '../icons';
-import { setCSSVar } from '../theme';
+  EditorMenu,
+  MenuDelete,
+  MenuDivider,
+  MenuItem,
+  MenuLabel,
+  MenuRadioSet,
+  MenuSection,
+} from "./editor-menu";
 
 export type FilePickerResult = {
   url: string;
 };
 
-export type FilePicker = (opts?: { accept?: string }) => Promise<FilePickerResult | undefined>;
+export type FilePicker = (opts?: {
+  accept?: string;
+}) => Promise<FilePickerResult | undefined>;
 
 type RichBlockState = {
   bg?: string;
@@ -43,56 +45,88 @@ type ValueChoice = MenuChoice & {
 };
 
 const columnsOpts: ValueChoice[] = [
-  { value: '1', isDefault: true, label: <span>One</span>, cssValue: '1' },
-  { value: '2', label: <span>Two</span>, cssValue: '2' },
+  { value: "1", isDefault: true, label: <span>One</span>, cssValue: "1" },
+  { value: "2", label: <span>Two</span>, cssValue: "2" },
 ];
 
-function findOptByValue<T extends ValueChoice>(opts: T[], value: string | undefined): T {
-  return opts.find((opt) => opt.value === value) || opts.find((opt) => opt.isDefault)!;
+function findOptByValue<T extends ValueChoice>(
+  opts: T[],
+  value: string | undefined,
+): T {
+  return (
+    opts.find((opt) => opt.value === value) ||
+    opts.find((opt) => opt.isDefault)!
+  );
 }
 
-function findOptByCssValue<T extends ValueChoice>(opts: T[], cssValue: string | undefined): T {
-  return opts.find((opt) => opt.cssValue === cssValue) || opts.find((opt) => opt.isDefault)!;
+function findOptByCssValue<T extends ValueChoice>(
+  opts: T[],
+  cssValue: string | undefined,
+): T {
+  return (
+    opts.find((opt) => opt.cssValue === cssValue) ||
+    opts.find((opt) => opt.isDefault)!
+  );
 }
 
 function deriveState(el: HTMLElement): RichBlockState {
-  const overlay = el.getAttribute('data-overlay') || '';
+  const overlay = el.getAttribute("data-overlay") || "";
 
   const style = getComputedStyle(el);
-  const bg = style.getPropertyValue('--theme-rich-block-bg').trim() || undefined;
-  const fg = style.getPropertyValue('--theme-rich-block-fg').trim() || undefined;
-  const columnsCss = style.getPropertyValue('--theme-rich-block-columns').trim();
-  const fullBleedCss = style.getPropertyValue('--theme-rich-block-fullbleed').trim();
-  const showOverlayCss = style.getPropertyValue('--theme-rich-block-show-overlay').trim();
+  const bg =
+    style.getPropertyValue("--theme-rich-block-bg").trim() || undefined;
+  const fg =
+    style.getPropertyValue("--theme-rich-block-fg").trim() || undefined;
+  const columnsCss = style
+    .getPropertyValue("--theme-rich-block-columns")
+    .trim();
+  const fullBleedCss = style
+    .getPropertyValue("--theme-rich-block-fullbleed")
+    .trim();
+  const showOverlayCss = style
+    .getPropertyValue("--theme-rich-block-show-overlay")
+    .trim();
 
   return {
     bg,
     fg,
     overlay,
-    showOverlay: showOverlayCss === '1' || (showOverlayCss === '' && !!overlay),
+    showOverlay: showOverlayCss === "1" || (showOverlayCss === "" && !!overlay),
     columns: findOptByCssValue(columnsOpts, columnsCss).value,
-    fullBleed: fullBleedCss === '1',
+    fullBleed: fullBleedCss === "1",
   };
 }
 
 function writeCssVars(el: HTMLElement, state: RichBlockState) {
-  setCSSVar(el, '--theme-rich-block-bg', state.bg);
-  setCSSVar(el, '--theme-rich-block-fg', state.fg);
-  setCSSVar(el, '--theme-rich-block-columns', findOptByValue(columnsOpts, state.columns).cssValue);
-  setCSSVar(el, '--theme-rich-block-fullbleed', state.fullBleed ? '1' : undefined);
-  setCSSVar(el, '--theme-rich-block-show-overlay', state.showOverlay ? '1' : undefined);
+  setCSSVar(el, "--theme-rich-block-bg", state.bg);
+  setCSSVar(el, "--theme-rich-block-fg", state.fg);
+  setCSSVar(
+    el,
+    "--theme-rich-block-columns",
+    findOptByValue(columnsOpts, state.columns).cssValue,
+  );
+  setCSSVar(
+    el,
+    "--theme-rich-block-fullbleed",
+    state.fullBleed ? "1" : undefined,
+  );
+  setCSSVar(
+    el,
+    "--theme-rich-block-show-overlay",
+    state.showOverlay ? "1" : undefined,
+  );
 }
 
 function blockStyle() {
   return {
-    backgroundColor: 'var(--theme-rich-block-bg, #f3f4f6)',
-    color: 'var(--theme-rich-block-fg, #111827)',
+    backgroundColor: "var(--theme-rich-block-bg, #f3f4f6)",
+    color: "var(--theme-rich-block-fg, #111827)",
   };
 }
 
 function articleStyle() {
   return {
-    columns: 'var(--theme-rich-block-columns, 1)',
+    columns: "var(--theme-rich-block-columns, 1)",
   };
 }
 
@@ -105,23 +139,23 @@ function applyStyles(block: RichBlock) {
   writeCssVars(block, state);
 
   if (state.overlay) {
-    block.setAttribute('data-overlay', state.overlay);
+    block.setAttribute("data-overlay", state.overlay);
   } else {
-    block.removeAttribute('data-overlay');
+    block.removeAttribute("data-overlay");
   }
 
   if (state.showOverlay && state.overlay) {
     block.style.backgroundImage = `url("${state.overlay}")`;
-    block.style.backgroundSize = 'cover';
-    block.style.backgroundPosition = 'center';
+    block.style.backgroundSize = "cover";
+    block.style.backgroundPosition = "center";
   } else {
-    block.style.backgroundImage = '';
+    block.style.backgroundImage = "";
   }
 
   if (state.fullBleed) {
-    block.setAttribute('data-fullbleed', 'true');
+    block.setAttribute("data-fullbleed", "true");
   } else {
-    block.removeAttribute('data-fullbleed');
+    block.removeAttribute("data-fullbleed");
   }
 }
 
@@ -139,8 +173,11 @@ export class RichBlock extends HTMLElement {
     const config = getEditorConfig(editor);
     const filepicker = config?.filepicker;
 
-    const existingContent = this.querySelector('article')?.innerHTML || '';
-    if (this.querySelector('article') && this.state.value.columns === undefined) {
+    const existingContent = this.querySelector("article")?.innerHTML || "";
+    if (
+      this.querySelector("article") &&
+      this.state.value.columns === undefined
+    ) {
       this.state.value = deriveState(this);
     }
 
@@ -154,8 +191,9 @@ export class RichBlock extends HTMLElement {
       return;
     }
 
-    this.contentEditable = 'false';
-    this.className = 'focus-within:ring-2 ring-offset-2 ring-indigo-600 group/block';
+    this.contentEditable = "false";
+    this.className =
+      "focus-within:ring-2 ring-offset-2 ring-indigo-600 group/block";
     this.tabIndex = -1;
 
     render(
@@ -179,7 +217,7 @@ export class RichBlock extends HTMLElement {
     const state = { ...this.state.value };
     const el = new RichBlock(state);
     applyStyles(el);
-    const article = this.querySelector('article');
+    const article = this.querySelector("article");
     render(
       <article
         style={articleStyle()}
@@ -193,13 +231,13 @@ export class RichBlock extends HTMLElement {
   }
 }
 
-customElements.define('rich-block', RichBlock);
+customElements.define("rich-block", RichBlock);
 
 export function createEmptyHTML(): string {
   const state: RichBlockState = {
     bg: undefined,
     fg: undefined,
-    columns: '1',
+    columns: "1",
     fullBleed: true,
   };
   const el = new RichBlock(state);
@@ -276,10 +314,13 @@ function BlockSettings(props: {
                       class="hidden"
                       onClick={async () => {
                         const result = await props.filepicker?.({
-                          accept: 'image/*',
+                          accept: "image/*",
                         });
                         if (result?.url) {
-                          props.state.value = { ...props.state.value, overlay: result.url };
+                          props.state.value = {
+                            ...props.state.value,
+                            overlay: result.url,
+                          };
                         }
                       }}
                     />
@@ -294,7 +335,7 @@ function BlockSettings(props: {
             <MenuItem title="Columns">
               <MenuRadioSet
                 name="columns"
-                value={state.columns || '1'}
+                value={state.columns || "1"}
                 onClick={(columns) => {
                   props.state.value = { ...props.state.value, columns };
                 }}
@@ -331,7 +372,11 @@ function EditableRichBlock(props: {
   return (
     <>
       <editor-ui class="opacity-0 transition-all group-hover/block:opacity-100 group-focus-within/block:opacity-100">
-        <BlockSettings state={props.state} onDelete={props.onDelete} filepicker={props.filepicker} />
+        <BlockSettings
+          state={props.state}
+          onDelete={props.onDelete}
+          filepicker={props.filepicker}
+        />
       </editor-ui>
       <article
         contentEditable
@@ -343,10 +388,10 @@ function EditableRichBlock(props: {
 }
 
 export const extRichBlock: EditorExtension = {
-  name: 'rich-block',
-  tagName: 'rich-block',
-  capabilities: ['block*'],
+  name: "rich-block",
+  tagName: "rich-block",
+  capabilities: ["block*"],
   onbeforeinput(e, editor) {
-    return insertBlockFromHTML(e, editor, 'rich-block');
+    return insertBlockFromHTML(e, editor, "rich-block");
   },
 };

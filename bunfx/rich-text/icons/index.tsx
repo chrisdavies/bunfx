@@ -1,4 +1,4 @@
-import type { h } from 'preact';
+import type { h } from "preact";
 
 export type SVGProps = h.JSX.SVGAttributes<SVGSVGElement>;
 
@@ -88,7 +88,11 @@ export function IcoArrowLeft(props: SVGProps) {
       class="size-4 opacity-75"
       {...props}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+      />
     </svg>
   );
 }
@@ -114,7 +118,12 @@ export function IcoCheck(props: SVGProps) {
 
 export function IcoRocketLaunch(props: SVGProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" class="size-4 opacity-75" {...props}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="size-4 opacity-75"
+      {...props}
+    >
       <path
         fillRule="evenodd"
         d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 0 1 .75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 0 1 9.75 22.5a.75.75 0 0 1-.75-.75v-4.131A15.838 15.838 0 0 1 6.382 15H2.25a.75.75 0 0 1-.75-.75 6.75 6.75 0 0 1 7.815-6.666ZM15 6.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z"
@@ -127,7 +136,12 @@ export function IcoRocketLaunch(props: SVGProps) {
 
 export function IcoX(props: SVGProps) {
   return (
-    <svg viewBox="0 0 20 20" fill="currentColor" class="size-4 opacity-75" {...props}>
+    <svg
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      class="size-4 opacity-75"
+      {...props}
+    >
       <path
         fill-rule="evenodd"
         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -222,7 +236,12 @@ export function IcoPlus(props: SVGProps) {
       stroke="currentColor"
       {...props}
     >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 4v16m8-8H4"
+      />
     </svg>
   );
 }

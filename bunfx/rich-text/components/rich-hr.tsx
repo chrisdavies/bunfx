@@ -1,19 +1,19 @@
-import type { EditorExtension } from '../editor/extensions';
-import { deleteForInput } from '../editor/core';
+import { deleteForInput } from "../editor/core";
+import type { EditorExtension } from "../editor/extensions";
 import {
   findEditableScope,
   findRootAncestor,
   getRange,
   getStartEl,
   insertParagraph,
-} from '../editor/utils';
+} from "../editor/utils";
 
 export class RichHr extends HTMLElement {
   connectedCallback() {
-    this.contentEditable = 'false';
+    this.contentEditable = "false";
     this.tabIndex = 0;
-    if (!this.querySelector('hr')) {
-      this.innerHTML = '<hr/>';
+    if (!this.querySelector("hr")) {
+      this.innerHTML = "<hr/>";
     }
   }
 
@@ -22,15 +22,15 @@ export class RichHr extends HTMLElement {
   }
 }
 
-customElements.define('rich-hr', RichHr);
+customElements.define("rich-hr", RichHr);
 
 export const extRichHr: EditorExtension = {
-  name: 'rich-hr',
-  tagName: 'rich-hr',
+  name: "rich-hr",
+  tagName: "rich-hr",
   isChildless: true,
-  capabilities: ['block*'],
+  capabilities: ["block*"],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertHorizontalRule') {
+    if (e.inputType === "insertHorizontalRule") {
       deleteForInput(editor);
       const rng = getRange(editor);
       if (!rng) {
@@ -41,7 +41,7 @@ export const extRichHr: EditorExtension = {
       if (!scope) {
         return;
       }
-      const richHr = document.createElement('rich-hr');
+      const richHr = document.createElement("rich-hr");
       const ancestor = findRootAncestor(scope, startEl);
       if (ancestor instanceof Element) {
         ancestor.replaceWith(richHr);
@@ -53,7 +53,7 @@ export const extRichHr: EditorExtension = {
         next = insertParagraph(richHr);
       }
       rng.setStart(next, 0);
-      next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      next.scrollIntoView({ behavior: "smooth", block: "center" });
 
       return true;
     }

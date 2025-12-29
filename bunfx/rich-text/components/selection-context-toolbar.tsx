@@ -1,11 +1,10 @@
-import { useEffect, useMemo } from 'preact/hooks';
-import type { PreactEditorState } from './use-editor-signal';
-import { useSignal } from '@preact/signals';
-import type { ComponentChildren, SignalLike } from 'preact';
-import { Button } from '../ui';
-import { applyEdit } from '../editor';
-import type { EditorExtension } from '../editor/extensions';
-import { getExtensions } from '../editor/extensions';
+import { useSignal } from "@preact/signals";
+import type { ComponentChildren, SignalLike } from "preact";
+import { useEffect, useMemo } from "preact/hooks";
+import { applyEdit } from "../editor";
+import type { EditorExtension } from "../editor/extensions";
+import { getExtensions } from "../editor/extensions";
+import { getStartEl, toElement } from "../editor/utils";
 import {
   IcoArrowLeft,
   IcoLink,
@@ -14,12 +13,17 @@ import {
   IcoTextLeft,
   IcoTextRight,
   IcoX,
-} from '../icons';
-import { getStartEl, toElement } from '../editor/utils';
+} from "../icons";
+import { Button } from "../ui";
+import type { PreactEditorState } from "./use-editor-signal";
 
-type ToolbarMode = 'color' | 'link' | 'default';
+type ToolbarMode = "color" | "link" | "default";
 
-export function SelectionContextToolbar({ state }: { state: PreactEditorState }) {
+export function SelectionContextToolbar({
+  state,
+}: {
+  state: PreactEditorState;
+}) {
   const range = state.range.value;
   const show = useSignal(false);
   useEffect(() => {
@@ -41,7 +45,7 @@ export function SelectionContextToolbar({ state }: { state: PreactEditorState })
 function ContextToolbar(props: { state: PreactEditorState }) {
   const range = props.state.range.value;
   const capabilities = props.state.capabilities.value;
-  const mode = useSignal<ToolbarMode>('default');
+  const mode = useSignal<ToolbarMode>("default");
   const { top, left } = useMemo(() => {
     const bounds = range?.getBoundingClientRect();
     const editor = props.state.editor;
@@ -77,9 +81,13 @@ function ContextToolbar(props: { state: PreactEditorState }) {
         }
       }}
     >
-      {mode.value === 'default' && <DefaultToolbar mode={mode} state={props.state} />}
-      {mode.value === 'link' && <LinkToolbar mode={mode} state={props.state} />}
-      {mode.value === 'color' && <ColorToolbar mode={mode} state={props.state} />}
+      {mode.value === "default" && (
+        <DefaultToolbar mode={mode} state={props.state} />
+      )}
+      {mode.value === "link" && <LinkToolbar mode={mode} state={props.state} />}
+      {mode.value === "color" && (
+        <ColorToolbar mode={mode} state={props.state} />
+      )}
     </nav>
   );
 }
@@ -93,7 +101,7 @@ function BtnToolbar(props: {
 }) {
   return (
     <Button
-      class={`inline-flex items-center justify-center size-8 rounded-md aspect-square hover:bg-gray-700/50 ${props.active ? 'text-teal-200' : ''} ${props.class}`}
+      class={`inline-flex items-center justify-center size-8 rounded-md aspect-square hover:bg-gray-700/50 ${props.active ? "text-teal-200" : ""} ${props.class}`}
       onClick={props.onClick}
       title={props.title}
     >
@@ -117,13 +125,20 @@ function elementsInRange(editor: HTMLElement, range?: Range): HTMLElement[] {
     return [];
   }
   const exts = getExtensions(editor);
-  const tags = ['h1', 'h2', 'a', 'blockquote', 'mark'];
+  const tags = ["h1", "h2", "a", "blockquote", "mark"];
   const formats = exts.filter(
-    (x) => (x.tagName && tags.includes(x.tagName)) || x.capabilities.includes('format*'),
+    (x) =>
+      (x.tagName && tags.includes(x.tagName)) ||
+      x.capabilities.includes("format*"),
   );
-  const startNode = range.startContainer.childNodes[range.startOffset] || range.startContainer;
-  const endNode = range.endContainer.childNodes[range.endOffset] || range.endContainer;
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  const startNode =
+    range.startContainer.childNodes[range.startOffset] || range.startContainer;
+  const endNode =
+    range.endContainer.childNodes[range.endOffset] || range.endContainer;
+  const walker = document.createTreeWalker(
+    editor,
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+  );
   walker.currentNode = startNode;
   const result: Record<string, HTMLElement> = {};
   const addEl = (node: Node) => {
@@ -155,11 +170,17 @@ function ToolbarDivider() {
   return <span class="border-l border-gray-500 h-6 mx-2"></span>;
 }
 
-function LinkToolbar({ mode, state }: { mode: SignalLike<ToolbarMode>; state: PreactEditorState }) {
+function LinkToolbar({
+  mode,
+  state,
+}: {
+  mode: SignalLike<ToolbarMode>;
+  state: PreactEditorState;
+}) {
   const range = state.range.value;
   const editor = state.editor;
-  const anchor = range && getStartEl(range)?.closest('a');
-  const href = useSignal(anchor?.href || '');
+  const anchor = range && getStartEl(range)?.closest("a");
+  const href = useSignal(anchor?.href || "");
 
   if (!editor) {
     return null;
@@ -170,25 +191,24 @@ function LinkToolbar({ mode, state }: { mode: SignalLike<ToolbarMode>; state: Pr
       <input
         class="text-inherit bg-transparent outline-none border-none ring-0"
         type="url"
-        autoFocus
         placeholder="https://example.com"
         value={href}
         onInput={(e: any) => {
           href.value = e.target.value;
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === "Enter") {
             e.preventDefault();
             e.stopPropagation();
-            applyEdit(editor, 'insertLink', href.value);
-            mode.value = 'default';
+            applyEdit(editor, "insertLink", href.value);
+            mode.value = "default";
           }
         }}
       />
       <BtnToolbar
         onClick={() => {
-          applyEdit(editor, 'insertLink', '');
-          mode.value = 'default';
+          applyEdit(editor, "insertLink", "");
+          mode.value = "default";
         }}
       >
         <IcoX />
@@ -222,7 +242,10 @@ function ColorMenuItem({
         <MenuLabel>
           {children && <span>{children}</span>}
           {!value && (
-            <span class="rounded-md px-1 text-xs font-medium border" style={{ background: value }}>
+            <span
+              class="rounded-md px-1 text-xs font-medium border"
+              style={{ background: value }}
+            >
               Default
             </span>
           )}
@@ -243,7 +266,7 @@ function ColorMenuItem({
       </div>
       {value && (
         <MenuLabel>
-          <Button onClick={() => onPick('')}>
+          <Button onClick={() => onPick("")}>
             <IcoX />
           </Button>
         </MenuLabel>
@@ -266,7 +289,7 @@ function ColorToolbar({
     return null;
   }
 
-  const mark = elementsInRange(editor, range).find((x) => x.matches('mark'));
+  const mark = elementsInRange(editor, range).find((x) => x.matches("mark"));
   const bg = useSignal(mark?.style.background);
   const fg = useSignal(mark?.style.color);
   return (
@@ -275,7 +298,7 @@ function ColorToolbar({
         name="background"
         value={bg.value}
         onPick={(color) => {
-          applyEdit(editor, 'formatBackColor', color);
+          applyEdit(editor, "formatBackColor", color);
           bg.value = color;
         }}
       >
@@ -285,7 +308,7 @@ function ColorToolbar({
         name="color"
         value={fg.value}
         onPick={(color) => {
-          applyEdit(editor, 'formatFontColor', color);
+          applyEdit(editor, "formatFontColor", color);
           fg.value = color;
         }}
       >
@@ -300,7 +323,7 @@ function ColorToolbar({
           type="button"
           class="hidden"
           onClick={() => {
-            mode.value = 'default';
+            mode.value = "default";
           }}
         />
       </MenuLabel>
@@ -326,25 +349,25 @@ function DefaultToolbar({
   const formats = elementsInRange(editor, range);
   const hasExt = (name: string) => capabilities.some((x) => x.name === name);
 
-  const hasBold = hasExt('formatBold');
-  const hasItalic = hasExt('formatItalic');
-  const hasUnderline = hasExt('formatUnderline');
-  const hasStrike = hasExt('formatStrikeThrough');
-  const hasLink = hasExt('hyperlinks');
-  const hasColor = hasExt('mark');
-  const hasAlign = hasExt('textAlign');
-  const hasH1 = hasExt('h1');
-  const hasH2 = hasExt('h2');
-  const hasH3 = hasExt('h3');
-  const hasBlockquote = hasExt('blockquote');
+  const hasBold = hasExt("formatBold");
+  const hasItalic = hasExt("formatItalic");
+  const hasUnderline = hasExt("formatUnderline");
+  const hasStrike = hasExt("formatStrikeThrough");
+  const hasLink = hasExt("hyperlinks");
+  const hasColor = hasExt("mark");
+  const hasAlign = hasExt("textAlign");
+  const hasH1 = hasExt("h1");
+  const hasH2 = hasExt("h2");
+  const hasH3 = hasExt("h3");
+  const hasBlockquote = hasExt("blockquote");
 
   const inlineButtons = (
     <>
       {hasBold && (
         <BtnToolbar
           title="Bold"
-          onClick={() => applyEdit(editor, 'formatBold')}
-          active={formats.some((x) => x.matches('b,strong'))}
+          onClick={() => applyEdit(editor, "formatBold")}
+          active={formats.some((x) => x.matches("b,strong"))}
         >
           <strong>B</strong>
         </BtnToolbar>
@@ -352,8 +375,8 @@ function DefaultToolbar({
       {hasItalic && (
         <BtnToolbar
           title="Italic"
-          onClick={() => applyEdit(editor, 'formatItalic')}
-          active={formats.some((x) => x.matches('i,em'))}
+          onClick={() => applyEdit(editor, "formatItalic")}
+          active={formats.some((x) => x.matches("i,em"))}
         >
           <em>I</em>
         </BtnToolbar>
@@ -361,8 +384,8 @@ function DefaultToolbar({
       {hasUnderline && (
         <BtnToolbar
           title="Underline"
-          onClick={() => applyEdit(editor, 'formatUnderline')}
-          active={formats.some((x) => x.matches('u'))}
+          onClick={() => applyEdit(editor, "formatUnderline")}
+          active={formats.some((x) => x.matches("u"))}
         >
           <u>U</u>
         </BtnToolbar>
@@ -370,8 +393,8 @@ function DefaultToolbar({
       {hasStrike && (
         <BtnToolbar
           title="Strike through"
-          onClick={() => applyEdit(editor, 'formatStrikeThrough')}
-          active={formats.some((x) => x.matches('s'))}
+          onClick={() => applyEdit(editor, "formatStrikeThrough")}
+          active={formats.some((x) => x.matches("s"))}
         >
           <s>S</s>
         </BtnToolbar>
@@ -382,9 +405,9 @@ function DefaultToolbar({
   const linkButton = hasLink && (
     <BtnToolbar
       title="Link"
-      active={formats.some((x) => x.matches('a'))}
+      active={formats.some((x) => x.matches("a"))}
       onClick={() => {
-        mode.value = 'link';
+        mode.value = "link";
       }}
     >
       <IcoLink class="size-4" />
@@ -394,9 +417,9 @@ function DefaultToolbar({
   const colorButton = hasColor && (
     <BtnToolbar
       title="Highlight / Color"
-      active={formats.some((x) => x.matches('mark'))}
+      active={formats.some((x) => x.matches("mark"))}
       onClick={() => {
-        mode.value = 'color';
+        mode.value = "color";
       }}
     >
       <IcoPaintBrush class="size-4" />
@@ -411,9 +434,9 @@ function DefaultToolbar({
         <BtnToolbar
           class="font-semibold text-xl"
           title="Page title"
-          active={formats.some((x) => x.matches('h1'))}
+          active={formats.some((x) => x.matches("h1"))}
           onClick={() => {
-            applyEdit(editor, 'formatBlock', 'h1');
+            applyEdit(editor, "formatBlock", "h1");
           }}
         >
           T
@@ -423,9 +446,9 @@ function DefaultToolbar({
         <BtnToolbar
           class="font-semibold text-sm"
           title="Title"
-          active={formats.some((x) => x.matches('h2'))}
+          active={formats.some((x) => x.matches("h2"))}
           onClick={() => {
-            applyEdit(editor, 'formatBlock', 'h2');
+            applyEdit(editor, "formatBlock", "h2");
           }}
         >
           T
@@ -435,9 +458,9 @@ function DefaultToolbar({
         <BtnToolbar
           class="font-semibold text-sm"
           title="Subtitle"
-          active={formats.some((x) => x.matches('h3'))}
+          active={formats.some((x) => x.matches("h3"))}
           onClick={() => {
-            applyEdit(editor, 'formatBlock', 'h3');
+            applyEdit(editor, "formatBlock", "h3");
           }}
         >
           t
@@ -447,9 +470,9 @@ function DefaultToolbar({
         <BtnToolbar
           class="font-semibold text-2xl leading-0 font-serif"
           title="Blockquote"
-          active={formats.some((x) => x.matches('blockquote'))}
+          active={formats.some((x) => x.matches("blockquote"))}
           onClick={() => {
-            applyEdit(editor, 'formatBlock', 'blockquote');
+            applyEdit(editor, "formatBlock", "blockquote");
           }}
         >
           <span class="relative -mb-2">"</span>
@@ -487,14 +510,17 @@ function BtnTextAlign({ state }: { state: PreactEditorState }) {
     return null;
   }
 
-  const ancestor = range?.commonAncestorContainer && toElement(range?.commonAncestorContainer);
-  const textAlign = getComputedStyle(ancestor instanceof Element ? ancestor : editor).textAlign;
+  const ancestor =
+    range?.commonAncestorContainer && toElement(range?.commonAncestorContainer);
+  const textAlign = getComputedStyle(
+    ancestor instanceof Element ? ancestor : editor,
+  ).textAlign;
   const nextAlign: Record<string, string> = {
-    right: 'formatJustifyLeft',
-    end: 'formatJustifyLeft',
-    start: 'formatJustifyCenter',
-    left: 'formatJustifyCenter',
-    center: 'formatJustifyRight',
+    right: "formatJustifyLeft",
+    end: "formatJustifyLeft",
+    start: "formatJustifyCenter",
+    left: "formatJustifyCenter",
+    center: "formatJustifyRight",
   };
 
   return (
@@ -502,13 +528,17 @@ function BtnTextAlign({ state }: { state: PreactEditorState }) {
       class="font-semibold text-xl"
       title="Text align"
       onClick={() => {
-        const inputType = nextAlign[textAlign] || 'formatJustifyLeft';
+        const inputType = nextAlign[textAlign] || "formatJustifyLeft";
         applyEdit(editor, inputType);
       }}
     >
-      {(textAlign === 'left' || textAlign === 'start') && <IcoTextLeft class="size-4" />}
-      {textAlign === 'center' && <IcoTextCenter class="size-4" />}
-      {(textAlign === 'right' || textAlign === 'end') && <IcoTextRight class="size-4" />}
+      {(textAlign === "left" || textAlign === "start") && (
+        <IcoTextLeft class="size-4" />
+      )}
+      {textAlign === "center" && <IcoTextCenter class="size-4" />}
+      {(textAlign === "right" || textAlign === "end") && (
+        <IcoTextRight class="size-4" />
+      )}
     </BtnToolbar>
   );
 }

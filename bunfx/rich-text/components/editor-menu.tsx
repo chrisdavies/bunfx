@@ -1,7 +1,7 @@
-import { Button, useEsc } from '../ui';
-import { IcoDotsHorizontal, IcoTrash, IcoX } from '../icons';
-import { useSignal } from '@preact/signals';
-import type { ComponentChildren } from 'preact';
+import { useSignal } from "@preact/signals";
+import type { ComponentChildren, JSX } from "preact";
+import { IcoDotsHorizontal, IcoTrash, IcoX } from "../icons";
+import { Button, useEsc } from "../ui";
 
 export function ColorMenuItem({
   name,
@@ -19,7 +19,10 @@ export function ColorMenuItem({
       {children && <span>{children}</span>}
       <span class="flex items-center gap-2">
         {!value && (
-          <span class="rounded-md px-1 text-xs font-medium border" style={{ background: value }}>
+          <span
+            class="rounded-md px-1 text-xs font-medium border"
+            style={{ background: value }}
+          >
             Default
           </span>
         )}
@@ -41,7 +44,7 @@ export function ColorMenuItem({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onPick('');
+                onPick("");
               }}
             >
               Reset
@@ -66,7 +69,7 @@ export function MenuRadioLabel(props: {
 }) {
   return (
     <label
-      class={`flex items-center text-sm font-medium text-gray-600 p-1 px-2 gap-4 cursor-pointer rounded-md transition-all relative ${props.checked ? 'bg-white shadow' : 'hover:bg-gray-200'}`}
+      class={`flex items-center text-sm font-medium text-gray-600 p-1 px-2 gap-4 cursor-pointer rounded-md transition-all relative ${props.checked ? "bg-white shadow" : "hover:bg-gray-200"}`}
       onClick={props.onClick}
     >
       <input
@@ -81,7 +84,11 @@ export function MenuRadioLabel(props: {
   );
 }
 
-export type MenuChoice = { value: string; isDefault?: boolean; label: ComponentChildren };
+export type MenuChoice = {
+  value: string;
+  isDefault?: boolean;
+  label: ComponentChildren;
+};
 
 export function MenuRadioSet(props: {
   name: string;
@@ -108,10 +115,17 @@ export function MenuRadioSet(props: {
 }
 
 export function MenuRadioGroup(props: { children: ComponentChildren }) {
-  return <div class="inline-flex gap-2 p-1 bg-gray-100 rounded-md">{props.children}</div>;
+  return (
+    <div class="inline-flex gap-2 p-1 bg-gray-100 rounded-md">
+      {props.children}
+    </div>
+  );
 }
 
-export function MenuItem(props: { title: ComponentChildren; children: ComponentChildren }) {
+export function MenuItem(props: {
+  title: ComponentChildren;
+  children: ComponentChildren;
+}) {
   return (
     <div class="flex items-center justify-between gap-4 p-2">
       <span>{props.title}</span>
@@ -120,7 +134,10 @@ export function MenuItem(props: { title: ComponentChildren; children: ComponentC
   );
 }
 
-export function MenuSection(props: { title: ComponentChildren; children: ComponentChildren }) {
+export function MenuSection(props: {
+  title: ComponentChildren;
+  children: ComponentChildren;
+}) {
   return (
     <div class="flex flex-col">
       <strong class="p-2">{props.title}</strong>
@@ -133,7 +150,10 @@ export function MenuDivider() {
   return <hr class="my-4 border-dashed" />;
 }
 
-export function MenuDelete(props: { title: ComponentChildren; onDelete(): void }) {
+export function MenuDelete(props: {
+  title: ComponentChildren;
+  onDelete(): void;
+}) {
   return (
     <label class="flex items-center p-2 text-red-500 justify-between gap-4 cursor-pointer rounded-md hover:bg-red-100 hover:text-red-600 transition-all">
       <span>{props.title}</span>
@@ -158,7 +178,9 @@ export function MenuLabel(props: { children: ComponentChildren }) {
 
 export function EditorMenu(props: { render(): JSX.Element }) {
   const showMenu = useSignal(false);
-  useEsc(() => (showMenu.value = false));
+  useEsc(() => {
+    showMenu.value = false;
+  });
   return (
     <div class="absolute -top-3 left-4 text-left">
       <Button

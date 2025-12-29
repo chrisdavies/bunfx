@@ -3,7 +3,7 @@
  * back into the editor.
  */
 
-import { serializeChildren } from './serialization';
+import { serializeChildren } from "./serialization";
 
 export function patch(editor: HTMLElement | null | undefined, value: string) {
   const root = editor as HTMLElement & { value?: string };
@@ -25,7 +25,7 @@ export function attachChangeObserver(editor: HTMLElement) {
     if (!root.serialize) {
       root.value = newValue;
     }
-    root.dispatchEvent(new InputEvent('input'));
+    root.dispatchEvent(new InputEvent("input"));
   });
 
   observer.observe(editor, {

@@ -7,10 +7,10 @@
  * serialized HTML on drop. This mirrors how cut/paste works.
  */
 
-import type { CapableElement, EditorExtension } from './extensions';
-import { serialize } from './serialization';
+import type { CapableElement, EditorExtension } from "./extensions";
+import { serialize } from "./serialization";
 
-type DropPosition = 'beforebegin' | 'afterend';
+type DropPosition = "beforebegin" | "afterend";
 type DropTarget = { target: HTMLElement; position: DropPosition };
 type DragState = {
   dragging: HTMLElement;
@@ -28,9 +28,9 @@ function getDragState(editor: DraggableEditor) {
 }
 
 function makeDragState(dragging: HTMLElement): DragState {
-  const indicator = document.createElement('editor-ui');
+  const indicator = document.createElement("editor-ui");
   indicator.className =
-    'drop-indicator absolute left-0 right-0 h-0.5 bg-blue-500 transition-all pointer-events-none z-max';
+    "drop-indicator absolute left-0 right-0 h-0.5 bg-blue-500 transition-all pointer-events-none z-max";
   return {
     dragging,
     serializedHTML: serialize(dragging),
@@ -40,7 +40,7 @@ function makeDragState(dragging: HTMLElement): DragState {
 
 function closestEditable(e: Event, editor: DraggableEditor) {
   const target = e.target instanceof HTMLElement ? e.target : undefined;
-  const block = target?.closest<HTMLElement>('[contenteditable]');
+  const block = target?.closest<HTMLElement>("[contenteditable]");
   if (block && editor.contains(block)) {
     return block;
   }
@@ -55,7 +55,7 @@ function onmousedown(e: MouseEvent, editor: DraggableEditor) {
   if (!block) {
     return;
   }
-  if (block.contentEditable === 'false') {
+  if (block.contentEditable === "false") {
     if (!block.draggable) {
       block.draggable = true;
     }
@@ -64,7 +64,7 @@ function onmousedown(e: MouseEvent, editor: DraggableEditor) {
   // Having a draggable ancestor means clicking doesn't work for placing
   // the selection / caret within a contenteditable, so we turn off dragging
   // to restore selection behavior.
-  const draggableAncestor = block.closest<HTMLElement>('[draggable=true]');
+  const draggableAncestor = block.closest<HTMLElement>("[draggable=true]");
   if (draggableAncestor) {
     draggableAncestor.draggable = false;
   }
@@ -80,18 +80,18 @@ function ondragstart(e: DragEvent, editor: DraggableEditor) {
   }
   editor.dragstate = makeDragState(block);
   if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', '');
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", "");
   }
-  block.style.opacity = '0.5';
+  block.style.opacity = "0.5";
 }
 
 function canHandleDrop(el: HTMLElement | null) {
-  if (el?.contentEditable !== 'true') {
+  if (el?.contentEditable !== "true") {
     return false;
   }
   const exts = (el as CapableElement).capabilities;
-  return !exts || exts.some((x) => x.capabilities.includes('block*'));
+  return !exts || exts.some((x) => x.capabilities.includes("block*"));
 }
 
 function findDropTarget(e: DragEvent, editor: DraggableEditor) {
@@ -111,7 +111,7 @@ function findDropTarget(e: DragEvent, editor: DraggableEditor) {
 
   // We've dragged over a margin / gap between children, so we
   // need to find the child beneath which we'll perform the insert.
-  if (targetEl?.contentEditable === 'true') {
+  if (targetEl?.contentEditable === "true") {
     for (const child of targetEl.children) {
       const rect = child.getBoundingClientRect();
       if (child instanceof HTMLElement && e.clientY < rect.bottom) {
@@ -132,7 +132,11 @@ function removeDropIndicator(editor: DraggableEditor) {
   dragstate.indicator.remove();
 }
 
-function upsertDropIndicator(e: DragEvent, editor: DraggableEditor, target: HTMLElement) {
+function upsertDropIndicator(
+  e: DragEvent,
+  editor: DraggableEditor,
+  target: HTMLElement,
+) {
   const dragstate = getDragState(editor);
   if (!dragstate) {
     return;
@@ -141,9 +145,10 @@ function upsertDropIndicator(e: DragEvent, editor: DraggableEditor, target: HTML
   const editorBounds = editor.getBoundingClientRect();
   const midpoint = targetBounds.top + targetBounds.height / 2;
   const indicator = dragstate.indicator;
-  const position: DropPosition = e.clientY < midpoint ? 'beforebegin' : 'afterend';
+  const position: DropPosition =
+    e.clientY < midpoint ? "beforebegin" : "afterend";
   const indicatorTop =
-    position === 'beforebegin'
+    position === "beforebegin"
       ? `${targetBounds.top - editorBounds.top + editor.scrollTop}px`
       : `${targetBounds.bottom - editorBounds.top + editor.scrollTop}px`;
   dragstate.dropTarget = { target, position };
@@ -164,7 +169,7 @@ function ondragover(e: DragEvent, editor: DraggableEditor) {
   }
   if (e.dataTransfer) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
   }
   const target = findDropTarget(e, editor);
   if (!target) {
@@ -188,28 +193,31 @@ function ondragend(editor: DraggableEditor) {
   removeDropIndicator(editor);
   if (dropTarget) {
     dragstate.dragging.remove();
-    dropTarget.target.insertAdjacentHTML(dropTarget.position, dragstate.serializedHTML);
+    dropTarget.target.insertAdjacentHTML(
+      dropTarget.position,
+      dragstate.serializedHTML,
+    );
   } else {
     // No drop target - restore the element's appearance
-    dragstate.dragging.style.opacity = '';
+    dragstate.dragging.style.opacity = "";
     dragstate.dragging.draggable = false;
   }
   editor.dragstate = undefined;
 }
 
 export const extDrag: EditorExtension = {
-  name: 'drag-blocks',
+  name: "drag-blocks",
   capabilities: [],
   onbeforeinput(e, editor) {
-    if (e.inputType === 'insertFromDrop' && getDragState(editor)) {
+    if (e.inputType === "insertFromDrop" && getDragState(editor)) {
       e.stopPropagation();
       return true;
     }
   },
   attach(editor) {
-    editor.addEventListener('mousedown', (e) => onmousedown(e, editor));
-    editor.addEventListener('dragstart', (e) => ondragstart(e, editor));
-    editor.addEventListener('dragover', (e) => ondragover(e, editor));
-    editor.addEventListener('dragend', () => ondragend(editor));
+    editor.addEventListener("mousedown", (e) => onmousedown(e, editor));
+    editor.addEventListener("dragstart", (e) => ondragstart(e, editor));
+    editor.addEventListener("dragover", (e) => ondragover(e, editor));
+    editor.addEventListener("dragend", () => ondragend(editor));
   },
 };

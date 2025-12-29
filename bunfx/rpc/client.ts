@@ -10,7 +10,6 @@ export type RPCClientOptions = {
   baseUrl?: string;
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: Required for proxy magic
 function makeProxy(path: string, options: RPCClientOptions): any {
   const prefix = options.prefix ?? "rpc/";
   const baseUrl = options.baseUrl ?? "";

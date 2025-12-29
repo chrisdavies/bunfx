@@ -18,10 +18,17 @@
       "bun": "./server/index.ts",
       "import": "./server/index.ts",
       "default": "./server/index.ts"
+    },
+    "./rich-text": {
+      "types": "./rich-text/index.ts",
+      "bun": "./rich-text/index.ts",
+      "import": "./rich-text/index.ts",
+      "default": "./rich-text/index.ts"
     }
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "happy-dom": "20.0.11"
   },
   "peerDependencies": {
     "typescript": "^5",
