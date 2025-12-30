@@ -1,5 +1,5 @@
 import { attachChangeObserver } from "./change";
-import type { EditorConfig } from "./config";
+import { getEditorConfig, type EditorConfig } from "./config";
 import { applyEdit } from "./core";
 import type { EditorExtension } from "./extensions";
 import { getExtensions } from "./extensions";
@@ -66,6 +66,9 @@ function makeEditable(editor: HTMLElement | null) {
       e.preventDefault();
       applyEdit(editor, "formatStrikeThrough");
     } else if (e.key === "Tab") {
+      if (getEditorConfig(editor)?.tabNavigation) {
+        return;
+      }
       e.preventDefault();
       applyEdit(editor, e.shiftKey ? "formatOutdent" : "formatIndent");
     }

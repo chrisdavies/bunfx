@@ -14,6 +14,7 @@ export type RichTextEditorProps = {
   filepicker?: FilePicker;
   extraExtensions?: EditorExtension[];
   autoFocus?: boolean;
+  tabNavigation?: boolean;
 };
 
 type EditorElement = HTMLElement & { config?: EditorConfig };
@@ -26,6 +27,7 @@ export function RichTextEditor(props: RichTextEditorProps) {
       extensions: [...getDefaultExtensions(), ...(props.extraExtensions || [])],
       uploader: props.uploader,
       filepicker: props.filepicker,
+      tabNavigation: props.tabNavigation,
     };
   }
 

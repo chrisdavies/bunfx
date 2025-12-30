@@ -6,6 +6,7 @@ export type EditorConfig = {
   extensions: EditorExtension[];
   uploader?: MakeUploader;
   filepicker?: FilePicker;
+  tabNavigation?: boolean;
 };
 
 type EditorElement = HTMLElement & { config?: EditorConfig };
