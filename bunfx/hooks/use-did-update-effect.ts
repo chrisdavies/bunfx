@@ -5,7 +5,7 @@ import { useEffect, useRef } from "preact/hooks";
  * Useful for running effects only when dependencies change after initial mount.
  */
 export function useDidUpdateEffect(
-  effect: () => undefined | (() => void),
+  effect: () => void | (() => void),
   deps: readonly unknown[],
 ): void {
   const isFirstRender = useRef(true);
