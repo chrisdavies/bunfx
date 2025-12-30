@@ -51,6 +51,8 @@ This is a Bun monorepo with two packages:
 | `bunfx/mailer` | Email abstraction (Mailgun + local dev provider at `/devmail`) |
 | `bunfx/htm` | HTML templating with automatic escaping |
 | `bunfx/cache` | LRU cache with TTL support |
+| `bunfx/util` | Utilities: `debounce()`, `serialAsync()` for async serialization |
+| `bunfx/hooks` | Preact hooks: `useDidUpdateEffect()` (skips first render) |
 
 ### Key Patterns
 

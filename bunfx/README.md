@@ -104,6 +104,26 @@ const session = await sessions.get(request);
 
 See [Sessions docs](../docs/sessions.md) for details.
 
+### Utilities
+
+Common utility functions for browser and server.
+
+```ts
+import { debounce, serialAsync, useDidUpdateEffect } from "bunfx";
+
+// Debounce a function
+const debouncedSave = debounce(save, 300);
+debouncedSave.cancel(); // Cancel pending execution
+
+// Serialize async calls (only one runs at a time, keeps latest queued)
+const serialSave = serialAsync(async (data) => { await api.save(data); });
+
+// Effect that skips the first render (Preact hook)
+useDidUpdateEffect(() => {
+  console.log("Dependencies changed after mount");
+}, [deps]);
+```
+
 ### Rich Text Editor
 
 A modular rich text editor built with Web Components and optional Preact integration.
