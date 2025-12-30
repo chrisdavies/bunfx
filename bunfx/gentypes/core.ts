@@ -286,6 +286,14 @@ function postgresTypeToTs(dataType: string, subType: string | null): string {
     }
     case "bytea":
       return "Uint8Array";
+    // Range types - returned as strings in PostgreSQL format: [start,end)
+    case "tstzrange":
+    case "tsrange":
+    case "daterange":
+    case "int4range":
+    case "int8range":
+    case "numrange":
+      return "string";
     default:
       if (subType?.startsWith("_")) {
         const inner = postgresTypeToTs(subType.replace(/^_/, ""), null);
