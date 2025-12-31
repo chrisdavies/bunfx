@@ -79,7 +79,7 @@ export const login = endpoint({
 
 ## Organizing Endpoints
 
-Group endpoints into namespaces (modules):
+Group endpoints into namespaces using **namespace re-exports**. This pattern is required for LSP "Find References" to work correctly on endpoints:
 
 ```ts
 // rpc/users.ts
@@ -90,13 +90,24 @@ export const updateUser = endpoint({ ... });
 export const getPosts = endpoint({ ... });
 export const createPost = endpoint({ ... });
 
-// rpc/index.ts
-import * as users from "./users";
-import * as posts from "./posts";
+// rpc/endpoints.ts - Use namespace re-exports
+export * as users from "./users";
+export * as posts from "./posts";
 
-export const endpoints = { users, posts };
-export type Endpoints = typeof endpoints;
+// rpc/types.ts - Export value and import type
+// Re-export endpoints as a value for use by RPC handler
+export * as endpoints from "./endpoints";
+// Import for typeof - this dual pattern preserves LSP "Find References" symbol linking
+import type * as endpoints from "./endpoints";
+
+export type RPC = typeof endpoints;
+
+// rpc/index.ts
+export type { RPC } from "./types";
+export { endpoints } from "./types";
 ```
+
+> **Why namespace re-exports?** Using `export * as users from "./users"` instead of `const endpoints = { users }` preserves TypeScript symbol references, enabling "Find References" from endpoint definitions to client call sites.
 
 ## Server Handler
 
@@ -138,18 +149,18 @@ Content-Type: application/json
 Create a typed client proxy:
 
 ```ts
+// rpc.ts (client entry point)
 import { makeRPCClient } from "bunfx";
-import type { Endpoints } from "./rpc";
+import type { RPC } from "./server/rpc";
 
-const rpc = makeRPCClient<Endpoints>({
-  prefix: "rpc/",    // Optional, default: "rpc/"
-  baseUrl: "",       // Optional, for different origin
-});
+export const rpc: RPC = makeRPCClient();
 
 // Type-safe calls
 const user = await rpc.users.getUser({ id: "123" });
 // user is typed as { id: string, name: string }
 ```
+
+> **Note:** Use a type annotation (`rpc: RPC`) rather than a generic (`makeRPCClient<RPC>()`) to preserve LSP symbol references for "Find References".
 
 ### Client Options
 
