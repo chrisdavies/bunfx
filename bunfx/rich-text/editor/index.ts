@@ -1,5 +1,5 @@
 import { attachChangeObserver } from "./change";
-import { getEditorConfig, type EditorConfig } from "./config";
+import { type EditorConfig, getEditorConfig } from "./config";
 import { applyEdit } from "./core";
 import type { EditorExtension } from "./extensions";
 import { getExtensions } from "./extensions";
@@ -21,13 +21,13 @@ function isUneditableBlock(editor: HTMLElement, el: Element | null) {
   return el.contentEditable === "false" && editor.contains(el) && editor !== el;
 }
 
-function makeEditable(editor: HTMLElement | null) {
+function makeEditable(editor: HTMLElement | null): Array<() => void> {
   if (
     !editor ||
     editor.contentEditable !== "true" ||
     editor.dataset.initialized
   ) {
-    return;
+    return [];
   }
   editor.dataset.initialized = "true";
   editor.addEventListener("keydown", (e) => {
@@ -92,7 +92,14 @@ function makeEditable(editor: HTMLElement | null) {
     exts?.find((x) => x.onbeforeinput?.(e, editor));
     e.preventDefault();
   });
-  getExtensions(editor).forEach((ext) => ext.attach?.(editor));
+  const cleanups: Array<() => void> = [];
+  for (const ext of getExtensions(editor)) {
+    const cleanup = ext.attach?.(editor);
+    if (cleanup) {
+      cleanups.push(cleanup);
+    }
+  }
+  return cleanups;
 }
 
 export class RichText extends HTMLElement {
@@ -132,7 +139,7 @@ export class RichText extends HTMLElement {
 
   #initialize() {
     this.extensions = this.#config?.extensions || [];
-    makeEditable(this);
+    this.detach.push(...makeEditable(this));
     this.detach.push(attachChangeObserver(this));
     this.detach.push(attachSelectionWatcher(this));
 

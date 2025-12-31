@@ -5,6 +5,7 @@ import { useEffect, useRef } from "preact/hooks";
  * Useful for running effects only when dependencies change after initial mount.
  */
 export function useDidUpdateEffect(
+  // biome-ignore lint/suspicious/noConfusingVoidType: void is correct - effect may or may not return a cleanup function
   effect: () => void | (() => void),
   deps: readonly unknown[],
 ): void {

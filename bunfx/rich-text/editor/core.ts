@@ -243,8 +243,19 @@ export const extBlocks: EditorExtension = {
       toggleBlockType(editor, e.data);
       return true;
     }
+    // Ensure cursor is in a valid block context before text input
+    if (
+      e.inputType === "insertText" ||
+      e.inputType === "insertReplacementText" ||
+      e.inputType === "insertFromPaste" ||
+      e.inputType === "insertFromDrop"
+    ) {
+      ensureBlockContext(editor);
+    }
   },
   attach(editor) {
+    ensureEditorNotEmpty(editor);
+
     const handleCopyCut = (e: ClipboardEvent) => {
       if (isUneditableBlock(editor, document.activeElement)) {
         e.preventDefault();
@@ -261,6 +272,52 @@ export const extBlocks: EditorExtension = {
     editor.addEventListener("cut", handleCopyCut);
   },
 };
+
+/**
+ * Ensure the editor has at least one paragraph if empty.
+ */
+function ensureEditorNotEmpty(editor: HTMLElement) {
+  if (!editor.firstChild) {
+    const p = document.createElement("p");
+    p.appendChild(document.createElement("br"));
+    editor.appendChild(p);
+  }
+}
+
+/**
+ * Ensure cursor is inside a block element, not directly in the editor root.
+ * If cursor is at root level, creates a paragraph and moves cursor into it.
+ */
+function ensureBlockContext(editor: HTMLElement) {
+  const sel = globalThis.getSelection();
+  if (!sel?.anchorNode || !editor.contains(sel.anchorNode)) {
+    return;
+  }
+  const anchor = sel.anchorNode;
+  const offset = sel.anchorOffset;
+
+  // Cursor is directly in the editor element (empty or between blocks)
+  if (anchor === editor) {
+    const p = document.createElement("p");
+    p.appendChild(document.createElement("br"));
+    const refNode = editor.childNodes[offset];
+    if (refNode) {
+      editor.insertBefore(p, refNode);
+    } else {
+      editor.appendChild(p);
+    }
+    sel.setPosition(p, 0);
+    return;
+  }
+
+  // Text node directly under editor (shouldn't happen with valid content, but handle it)
+  if (anchor instanceof Text && anchor.parentNode === editor) {
+    const p = document.createElement("p");
+    anchor.before(p);
+    p.appendChild(anchor);
+    sel.setPosition(anchor, offset);
+  }
+}
 
 function insertHTML(editor: HTMLElement, e: InputEvent) {
   deleteForInput(editor);

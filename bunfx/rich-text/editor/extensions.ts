@@ -16,7 +16,8 @@ export type EditorExtension = {
   isInline?: boolean;
   isChildless?: boolean;
   capabilities: string[];
-  attach?(editor: HTMLElement): void;
+  // biome-ignore lint/suspicious/noConfusingVoidType: void is correct here - attach may or may not return a cleanup function
+  attach?(editor: HTMLElement): void | (() => void);
   onkeydown?(
     e: KeyboardEvent,
     editor: HTMLElement,

@@ -89,6 +89,56 @@ function MyEditor() {
 }
 ```
 
+### Placeholder
+
+Show hint text when the editor is empty:
+
+```tsx
+<RichTextEditor
+  value={content}
+  onChange={setContent}
+  placeholder="Start typing..."
+/>
+```
+
+The placeholder requires CSS to display. Import the default styles:
+
+```ts
+import "bunfx/rich-text/placeholder.css";
+```
+
+Or add equivalent styles to your own stylesheet:
+
+```css
+rich-text {
+  position: relative;
+}
+
+rich-text[data-empty]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  color: currentColor;
+}
+```
+
+To match your editor's content padding, adjust the `::before` positioning:
+
+```css
+rich-text[data-empty]::before {
+  /* Match your editor's padding */
+  padding: 1rem;
+
+  /* Customize appearance */
+  opacity: 0.4;
+  color: #6b7280;
+  font-style: italic;
+}
+```
+
 ## Core Editor (No Preact)
 
 The core editor is a Web Component that can be used without Preact:
@@ -265,6 +315,9 @@ type RichTextEditorProps = {
   uploader?: MakeUploader;           // Enables image upload
   filepicker?: FilePicker;           // Enables file picker UI
   extraExtensions?: EditorExtension[]; // Additional extensions
+  autoFocus?: boolean;               // Focus editor on mount
+  tabNavigation?: boolean;           // Allow Tab key to leave editor
+  placeholder?: string;              // Hint text when empty
 };
 ```
 
@@ -309,11 +362,29 @@ type EditorExtension = {
   isInline?: boolean;
   isChildless?: boolean;
   capabilities: string[];
-  attach?(editor: HTMLElement): void;
+  attach?(editor: HTMLElement): void | (() => void); // Return cleanup function
   onkeydown?(e: KeyboardEvent, editor: HTMLElement): boolean | void;
   onbeforeinput?(e: InputEvent, editor: HTMLElement): boolean | void;
   onselectionchange?(e: SelectionChangeEvent, editor: HTMLElement): boolean | void;
 };
+```
+
+### extPlaceholder
+
+Factory function to create a placeholder extension for use with the core editor (without Preact):
+
+```ts
+import { extPlaceholder, RichText, getDefaultExtensions } from "bunfx/rich-text";
+
+const config = {
+  extensions: [
+    ...getDefaultExtensions(),
+    extPlaceholder("Start typing..."),
+  ],
+};
+
+const editor = document.querySelector("rich-text") as RichText;
+editor.config = config;
 ```
 
 ## Utilities

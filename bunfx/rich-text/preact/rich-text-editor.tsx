@@ -4,6 +4,7 @@ import type { MakeUploader } from "../components/upload";
 import { getDefaultExtensions } from "../defaults";
 import type { EditorConfig } from "../editor/config";
 import type { EditorExtension } from "../editor/extensions";
+import { extPlaceholder } from "../editor/placeholder";
 // Import RichText to register the custom element
 import "../editor";
 
@@ -15,6 +16,7 @@ export type RichTextEditorProps = {
   extraExtensions?: EditorExtension[];
   autoFocus?: boolean;
   tabNavigation?: boolean;
+  placeholder?: string;
 };
 
 type EditorElement = HTMLElement & { config?: EditorConfig };
@@ -23,8 +25,15 @@ export function RichTextEditor(props: RichTextEditorProps) {
   const configRef = useRef<EditorConfig | undefined>(undefined);
 
   if (!configRef.current) {
+    const extensions = [
+      ...getDefaultExtensions(),
+      ...(props.extraExtensions || []),
+    ];
+    if (props.placeholder) {
+      extensions.push(extPlaceholder(props.placeholder));
+    }
     configRef.current = {
-      extensions: [...getDefaultExtensions(), ...(props.extraExtensions || [])],
+      extensions,
       uploader: props.uploader,
       filepicker: props.filepicker,
       tabNavigation: props.tabNavigation,

@@ -1,0 +1,18 @@
+/**
+ * Default placeholder styles for rich-text editor.
+ * Import this CSS or copy into your own stylesheet.
+ */
+
+rich-text {
+  position: relative;
+}
+
+rich-text[data-empty]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  color: currentColor;
+}
