@@ -43,7 +43,7 @@ type KebabToCamel<S extends string> = S extends `${infer P}-${infer Q}`
 
 type CamelCase<S extends string> = Uncapitalize<KebabToCamel<SnakeToCamel<S>>>;
 
-type Camelize<T> = T extends (infer U)[]
+export type Camelize<T> = T extends (infer U)[]
   ? Camelize<U>[]
   : T extends Date
     ? Date
