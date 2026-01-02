@@ -148,6 +148,29 @@ function MyEditor() {
 
 See [Rich Text docs](../docs/rich-text.md) for details.
 
+### Zod Utilities
+
+Custom Zod validators for common patterns.
+
+```ts
+import { zHtml } from "bunfx/zod";
+import { z } from "zod";
+
+// HTML that gets sanitized during validation
+const schema = z.object({
+  title: zHtml({ maxLength: 200 }),
+  content: zHtml(),
+});
+
+const result = schema.parse({
+  title: '<script>xss</script><b>Hello</b>',
+  content: '<p>Content</p>',
+});
+// result.title === "<b>Hello</b>" (sanitized)
+```
+
+See [Zod Utilities docs](../docs/zod.md) for details.
+
 ## Full Documentation
 
 - [Getting Started](../docs/getting-started.md)
@@ -163,3 +186,5 @@ See [Rich Text docs](../docs/rich-text.md) for details.
 - [HTM (HTML Templating)](../docs/htm.md)
 - [Type Generation](../docs/gentypes.md)
 - [Rich Text Editor](../docs/rich-text.md)
+- [Sanitize](../docs/sanitize.md)
+- [Zod Utilities](../docs/zod.md)
