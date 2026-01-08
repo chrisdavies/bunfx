@@ -7,4 +7,5 @@ export * from "../mailer";
 export * from "../migrations/migrate";
 export * from "../request-logger";
 export * from "../rpc/server";
+export * from "../s3";
 export * from "../sessions/server";
